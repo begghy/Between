@@ -1,0 +1,1988 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Between — Onboarding (FSE Km Zero)</title>
+  <style>
+    /* ============================================================
+       Between — single-file prototype (Paziente / Caregiver / Operatore)
+       iOS 18 glass · deep navy · bilingual IT/EN
+       ============================================================ */
+    :root {
+      --bg-screen: #0a1628;
+      --bg-page: #080f1e;
+      --text: #f8f7f4;
+      --muted: rgba(248, 247, 244, 0.62);
+      --muted2: rgba(248, 247, 244, 0.45);
+      --accent: #4a7fd4;
+      --glass: rgba(255, 255, 255, 0.08);
+      --glass-border: rgba(255, 255, 255, 0.18);
+      --shadow: 0 8px 32px rgba(0, 0, 0, 0.32);
+      --r-card: 26px;
+      --r-btn: 16px;
+      --r-inp: 14px;
+      --frame-w: 390px;
+      --frame-h: 844px;
+      --chrome-r: 55px;
+      --font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: var(--bg-page);
+      color: var(--text);
+      font-family: var(--font);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .noise-svg {
+      pointer-events: none;
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      opacity: 0.05;
+      mix-blend-mode: overlay;
+    }
+
+    /* ----- floating lang ----- */
+    .lang-toggle {
+      position: fixed;
+      top: 14px;
+      right: 14px;
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.08);
+      -webkit-backdrop-filter: blur(20px);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+      box-shadow: var(--shadow);
+    }
+    .lang-toggle button {
+      appearance: none;
+      border: none;
+      background: transparent;
+      color: rgba(248, 247, 244, 0.55);
+      font: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 6px 12px;
+      border-radius: 999px;
+      cursor: pointer;
+    }
+    .lang-toggle button.active {
+      color: var(--text);
+      background: rgba(74, 127, 212, 0.38);
+    }
+    .lang-toggle .sep { width: 1px; height: 14px; background: rgba(255,255,255,0.22); }
+
+    /* ----- layout ----- */
+    .page-wrap {
+      position: relative;
+      z-index: 1;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 72px 20px 100px;
+    }
+
+    .flow-section { margin-bottom: 56px; }
+
+    .section-label {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted2);
+      margin: 0 0 18px 4px;
+    }
+
+    .screens-row {
+      display: flex;
+      gap: 28px;
+      overflow-x: auto;
+      padding: 8px 4px 28px;
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .screen-package {
+      flex: 0 0 auto;
+      scroll-snap-align: start;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .frame-caption {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      color: rgba(248, 247, 244, 0.38);
+      text-transform: uppercase;
+    }
+
+    /* ----- iPhone frame ----- */
+    .iphone-frame {
+      width: var(--frame-w);
+      height: var(--frame-h);
+      border-radius: var(--chrome-r);
+      background: linear-gradient(160deg, #1e2a40 0%, #0f1829 45%, #0a1628 100%);
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      box-shadow: 0 28px 90px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .screen-inner {
+      position: absolute;
+      inset: 10px;
+      border-radius: calc(var(--chrome-r) - 10px);
+      overflow: hidden;
+      background: var(--bg-screen);
+    }
+
+    .screen-bg {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 80% 55% at 50% -10%, rgba(74,127,212,0.28) 0%, transparent 70%), #0a1628;
+    }
+    .screen-bg::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      opacity: 0.07;
+      pointer-events: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    }
+
+    .status-bar {
+      height: 54px;
+      padding: 14px 26px 0;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      font-size: 15px;
+      font-weight: 600;
+      position: relative;
+      z-index: 5;
+    }
+    .status-bar .sb-right {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .signal-dots { letter-spacing: 1px; opacity: 0.95; }
+    .battery {
+      width: 24px;
+      height: 11px;
+      border: 1px solid rgba(255,255,255,0.45);
+      border-radius: 3px;
+      padding: 1px;
+      margin-left: 4px;
+    }
+    .battery > i {
+      display: block;
+      height: 100%;
+      width: 72%;
+      background: var(--text);
+      border-radius: 1px;
+    }
+
+    .scroll-area {
+      position: absolute;
+      top: 54px;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      overflow-y: auto;
+      padding: 0 22px 48px;
+      z-index: 1;
+    }
+
+    .home-indicator {
+      position: absolute;
+      bottom: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 134px;
+      height: 5px;
+      background: rgba(255, 255, 255, 0.35);
+      border-radius: 100px;
+      z-index: 20;
+    }
+
+    /* progress dots */
+    .dots {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 18px;
+    }
+    .dots span {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.22);
+      transition: width 0.25s, background 0.25s;
+    }
+    .dots span.on {
+      width: 28px;
+      background: var(--text);
+    }
+
+    /* glass */
+    .glass {
+      background: var(--glass);
+      -webkit-backdrop-filter: blur(20px);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--r-card);
+      box-shadow: var(--shadow);
+    }
+
+    .glass-muted {
+      background: rgba(255, 255, 255, 0.06);
+      -webkit-backdrop-filter: blur(20px);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--r-card);
+    }
+
+    .btn-fill {
+      width: 100%;
+      min-height: 54px;
+      border: none;
+      border-radius: var(--r-btn);
+      font: inherit;
+      font-weight: 650;
+      font-size: 16px;
+      background: var(--text);
+      color: #1a1f28;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-fill-blue {
+      background: linear-gradient(180deg, #5e92e6 0%, var(--accent) 100%);
+      color: var(--text);
+      box-shadow: 0 6px 24px rgba(74, 127, 212, 0.35);
+    }
+
+    .btn-ghost {
+      width: 100%;
+      min-height: 54px;
+      border-radius: var(--r-btn);
+      border: 1px solid var(--glass-border);
+      background: rgba(255, 255, 255, 0.05);
+      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(12px);
+      color: var(--text);
+      font: inherit;
+      font-weight: 600;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    /* Official-style auth buttons (SPID/CIE) for export fidelity */
+    .auth-btn {
+      width: 100%;
+      min-height: 54px;
+      border-radius: 8px;
+      border: none;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+      cursor: pointer;
+      font-family: var(--font);
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      text-align: left;
+    }
+
+    .auth-btn .auth-icon {
+      width: 58px;
+      min-height: 54px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      border-right: 1px solid rgba(255, 255, 255, 0.28);
+    }
+
+    .auth-btn .auth-label {
+      flex: 1;
+      min-width: 0;
+      text-align: center;
+      padding: 0 14px;
+      line-height: 1.1;
+    }
+
+    .auth-btn-spid {
+      background: #0066cc;
+      color: #ffffff;
+      box-shadow: 0 10px 26px rgba(0, 102, 204, 0.28);
+    }
+
+    .auth-btn-spid .auth-icon {
+      background: #0059b3;
+    }
+
+    .spid-mark {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: #ffffff;
+      color: #0066cc;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+    }
+
+    .auth-btn-cie {
+      background: #ffffff;
+      color: #1f2b3a;
+      box-shadow: 0 8px 26px rgba(0, 0, 0, 0.24);
+    }
+
+    .auth-btn-cie .auth-icon {
+      border-right-color: rgba(31, 43, 58, 0.2);
+      background:
+        linear-gradient(90deg, #009246 0 33.333%, #ffffff 33.333% 66.666%, #ce2b37 66.666% 100%);
+    }
+
+    .cie-mark {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: rgba(31, 43, 58, 0.88);
+      color: #ffffff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+    }
+
+    .link-muted {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font: inherit;
+      font-size: 14px;
+      text-decoration: underline;
+      text-underline-offset: 4px;
+      cursor: pointer;
+      padding: 10px;
+    }
+
+    .label-caps {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted2);
+      margin-bottom: 8px;
+    }
+
+    .section-kicker {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted2);
+      margin: 20px 0 22px;
+    }
+
+    .blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(60px);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .blob-1 { width: 200px; height: 200px; background: rgba(74,127,212,0.22); top: 80px; left: -40px; }
+    .blob-2 { width: 160px; height: 160px; background: rgba(100,180,255,0.12); top: 320px; right: -30px; }
+
+    h1.screen-title {
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      margin: 0 0 10px;
+      line-height: 1.15;
+    }
+
+    .subtitle {
+      font-size: 15px;
+      line-height: 1.45;
+      color: var(--muted);
+      margin: 0 0 20px;
+    }
+
+    /* role cards */
+    .role-card {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      width: 100%;
+      padding: 14px 14px;
+      margin-bottom: 10px;
+      border-radius: var(--r-card);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      background: rgba(255, 255, 255, 0.05);
+      -webkit-backdrop-filter: blur(20px);
+      backdrop-filter: blur(20px);
+      cursor: pointer;
+      text-align: left;
+      font: inherit;
+      color: inherit;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .role-card.selected {
+      border-color: rgba(74, 127, 212, 0.65);
+      box-shadow: 0 0 0 1px rgba(74, 127, 212, 0.25);
+      background: rgba(74, 127, 212, 0.1);
+    }
+    .role-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 15px;
+      flex-shrink: 0;
+    }
+    .role-card h3 { margin: 0 0 4px; font-size: 16px; font-weight: 650; }
+    .role-card p { margin: 0; font-size: 13px; color: var(--muted); line-height: 1.35; }
+    .role-check {
+      margin-left: auto;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.28);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .role-card.selected .role-check {
+      background: var(--text);
+      border-color: var(--text);
+    }
+    .role-card.selected .role-check svg { opacity: 1; stroke: #1a1f28; }
+    .role-check svg { opacity: 0; width: 12px; height: 12px; }
+
+    /* code chunks */
+    .code-row {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin: 8px 0 8px;
+    }
+    .code-box {
+      min-width: 92px;
+      padding: 14px 12px;
+      border-radius: var(--r-inp);
+      border: 1px solid var(--glass-border);
+      background: var(--glass);
+      -webkit-backdrop-filter: blur(20px);
+      backdrop-filter: blur(20px);
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-align: center;
+      text-transform: uppercase;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+    .code-box input {
+      width: 100%;
+      border: none;
+      background: transparent;
+      color: inherit;
+      font: inherit;
+      text-align: center;
+      outline: none;
+    }
+
+    .data-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      font-size: 14px;
+    }
+    .data-row:last-child { border-bottom: none; }
+    .data-row span:first-child { color: var(--muted2); }
+    .data-row span:last-child { font-weight: 500; text-align: right; }
+
+    .badge-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      border: 1px solid var(--glass-border);
+      background: rgba(255, 255, 255, 0.06);
+      margin-bottom: 14px;
+    }
+    .badge-pill svg { flex-shrink: 0; }
+
+    /* notif rows — circular toggle appearance */
+    .notif-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      margin-bottom: 10px;
+    }
+    .notif-row .ni {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+    .notif-row .txt { flex: 1; min-width: 0; }
+    .notif-row .txt strong { display: block; font-size: 15px; margin-bottom: 2px; }
+    .notif-row .txt small { font-size: 13px; color: var(--muted2); }
+    .notif-ring {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .notif-ring.on {
+      background: rgba(74, 127, 212, 0.35);
+      border-color: var(--accent);
+    }
+
+    /* mood chips */
+    .mood-row { display: flex; gap: 8px; }
+    .mood-btn {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 10px 4px;
+      border-radius: var(--r-inp);
+      border: 1px solid var(--glass-border);
+      background: var(--glass);
+      -webkit-backdrop-filter: blur(16px);
+      backdrop-filter: blur(16px);
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      cursor: pointer;
+    }
+    .mood-btn.on {
+      border-color: rgba(255, 255, 255, 0.55);
+      color: var(--text);
+    }
+    .mood-btn span.emoji { font-size: 22px; line-height: 1; }
+
+    .accent-card {
+      padding: 16px;
+      border-left: 4px solid var(--accent);
+      margin-bottom: 12px;
+    }
+    .accent-card .meta { font-size: 13px; color: var(--muted2); margin-bottom: 6px; }
+    .accent-card .main { font-size: 17px; font-weight: 650; margin-bottom: 4px; }
+    .accent-card .sub { font-size: 14px; color: var(--muted); line-height: 1.35; }
+
+    .med-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px 14px;
+      margin-bottom: 8px;
+      font-size: 14px;
+      line-height: 1.35;
+    }
+    .med-row.done { opacity: 0.55; text-decoration: line-through; }
+    .sq-check {
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      flex-shrink: 0;
+      margin-top: 2px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .med-row.done .sq-check {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    /* tab bar */
+    .tab-bar {
+      position: absolute;
+      left: 16px;
+      right: 16px;
+      bottom: 18px;
+      height: 58px;
+      padding: 0 6px 10px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-around;
+      border-radius: 28px;
+      background: rgba(10, 22, 40, 0.82);
+      -webkit-backdrop-filter: blur(24px);
+      backdrop-filter: blur(24px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      z-index: 15;
+    }
+    .tab-bar.op-tabs .tab svg { width: 22px; height: 22px; }
+    .tab {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      padding-bottom: 4px;
+      font-size: 10px;
+      font-weight: 650;
+      color: rgba(248, 247, 244, 0.42);
+    }
+    .tab.on { color: var(--accent); }
+    .tab svg {
+      width: 22px;
+      height: 22px;
+      opacity: 0.95;
+    }
+
+    .scroll-with-tab { padding-bottom: 92px !important; }
+
+    .header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+    .avatar-round {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--glass-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .quick-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 8px;
+    }
+    .qa-pill {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      padding: 12px 6px;
+      border-radius: var(--r-inp);
+      border: 1px solid var(--glass-border);
+      background: rgba(255, 255, 255, 0.06);
+      font-size: 11px;
+      font-weight: 650;
+      color: var(--muted);
+    }
+
+    .input-dark {
+      width: 100%;
+      padding: 14px 16px;
+      border-radius: var(--r-inp);
+      border: 1px solid var(--glass-border);
+      background: var(--glass);
+      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(12px);
+      color: var(--text);
+      font-size: 15px;
+      font-family: inherit;
+    }
+
+    .patient-card-sel {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px;
+      margin: 14px 0;
+    }
+    .patient-card-sel .check {
+      margin-left: auto;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .code-big {
+      font-size: 28px;
+      font-weight: 750;
+      letter-spacing: 0.15em;
+      font-family: ui-monospace, monospace;
+      margin: 8px 0;
+    }
+
+    .dash-btn {
+      border: 2px dashed rgba(255, 255, 255, 0.28);
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .op-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 650;
+      border: 1px solid var(--glass-border);
+      margin-bottom: 12px;
+    }
+
+    .list-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px;
+      margin-bottom: 10px;
+    }
+    .list-card .initials {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 13px;
+    }
+    .list-card .grow { flex: 1; min-width: 0; }
+    .list-card .grow strong { display: block; font-size: 15px; margin-bottom: 2px; }
+    .list-card .grow span { font-size: 13px; color: var(--muted2); }
+
+    .splash-brand { margin-top: 8px; margin-bottom: 28px; }
+    .splash-brand .logo { font-size: 34px; font-weight: 780; letter-spacing: -0.03em; margin-bottom: 6px; }
+    .splash-brand .inst { font-size: 11px; font-weight: 650; letter-spacing: 0.14em; color: var(--muted2); }
+
+    .splash-hero { font-size: 26px; font-weight: 750; line-height: 1.2; letter-spacing: -0.03em; margin: 0 0 14px; max-width: 92%; }
+    .splash-body { font-size: 15px; line-height: 1.5; color: var(--muted); margin: 0 0 28px; max-width: 100%; }
+    .splash-brand,
+    .splash-hero,
+    .splash-body,
+    .stack-gap { position: relative; z-index: 1; }
+    .splash-deco {
+      position: absolute;
+      top: 12px;
+      right: -18px;
+      font-size: 220px;
+      font-weight: 800;
+      letter-spacing: -0.05em;
+      line-height: 0.8;
+      color: rgba(248, 247, 244, 0.06);
+      pointer-events: none;
+      z-index: 0;
+      user-select: none;
+    }
+
+    .stack-gap { display: flex; flex-direction: column; gap: 12px; }
+
+    .flex-grow { flex: 1; min-width: 0; }
+
+    .qr-row {
+      margin-top: 16px;
+      padding-top: 8px;
+    }
+  </style>
+</head>
+<body>
+  <svg class="noise-svg" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" stitchTiles="stitch"/></filter>
+    <rect width="100%" height="100%" filter="url(#grain)"/>
+  </svg>
+
+  <div class="lang-toggle" role="group" aria-label="Lingua">
+    <button type="button" id="btn-it" class="active" aria-pressed="true">IT</button>
+    <span class="sep"></span>
+    <button type="button" id="btn-en" aria-pressed="false">EN</button>
+  </div>
+
+  <main class="page-wrap">
+
+    <!-- ==================== A — PAZIENTE ==================== -->
+    <section class="flow-section" aria-labelledby="lab-a">
+      <h2 id="lab-a" class="section-label" data-i18n="sectionA"></h2>
+      <div class="screens-row">
+
+        <!-- A1 SPLASH -->
+        <div class="screen-package">
+          <div class="iphone-frame">
+            <div class="screen-inner">
+              <div class="screen-bg"></div>
+              <header class="status-bar"><span>9:41</span><div class="sb-right"><span class="signal-dots">●●●●</span><span>△</span><span class="battery"><i></i></span><span>100%</span></div></header>
+              <div class="scroll-area">
+                <div class="splash-deco" aria-hidden="true">B</div>
+                <div class="splash-brand">
+                  <div class="logo">Between</div>
+                  <div class="inst" data-i18n="brandInstitution"></div>
+                </div>
+                <p class="splash-hero" data-i18n="splashHeadline"></p>
+                <p class="splash-body" data-i18n="splashBody"></p>
+                <div class="stack-gap" style="margin-top: 8px;">
+                  <button type="button" class="auth-btn auth-btn-spid" aria-label="Login with SPID">
+                    <span class="auth-icon" aria-hidden="true"><span class="spid-mark">SPID</span></span>
+                    <span class="auth-label" data-i18n="loginSpid"></span>
+                  </button>
+                  <button type="button" class="auth-btn auth-btn-cie" aria-label="Login with CIE">
+                    <span class="auth-icon" aria-hidden="true"><span class="cie-mark">CIE</span></span>
+                    <span class="auth-label" data-i18n="loginCie"></span>
+                  </button>
+                </div>
+                <div style="text-align:center;margin-top:18px;">
+                  <button type="button" class="link-muted" data-i18n="activationQuestion"></button>
+                </div>
+              </div>
+              <div class="home-indicator"></div>
+            </div>
+          </div>
+          <span class="frame-caption">A1 — Splash</span>
+        </div>
+
+        <!-- A2 RUOLO -->
+        <div class="screen-package">
+          <div class="iphone-frame">
+            <div class="screen-inner">
+              <div class="screen-bg"></div>
+              <header class="status-bar"><span>9:41</span><div class="sb-right"><span class="signal-dots">●●●●</span><span>△</span><span class="battery"><i></i></span><span>100%</span></div></header>
+              <div class="scroll-area">
+                <div class="dots" aria-hidden="true"><span class="on"></span><span></span><span></span><span></span><span></span></div>
+                <h1 class="screen-title" data-i18n="roleTitle"></h1>
+                <p class="subtitle" data-i18n="roleSubtitle"></p>
+                <div class="role-cards-a">
+                  <button type="button" class="role-card selected" data-role="patient">
+                    <span class="role-avatar">P</span>
+                    <span class="flex-grow"><h3 data-i18n="rolePatient"></h3><p data-i18n="rolePatientDesc"></p></span>
+                    <span class="role-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></span>
+                  </button>
+                  <button type="button" class="role-card" data-role="caregiver">
+                    <span class="role-avatar">C</span>
+                    <span class="flex-grow"><h3 data-i18n="roleCaregiver"></h3><p data-i18n="roleCaregiverDesc"></p></span>
+                    <span class="role-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></span>
+                  </button>
+                  <button type="button" class="role-card" data-role="hcp">
+                    <span class="role-avatar">O</span>
+                    <span class="flex-grow"><h3 data-i18n="roleHcp"></h3><p data-i18n="roleHcpDesc"></p></span>
+                    <span class="role-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></span>
+                  </button>
+                </div>
+                <div style="margin-top:20px;">
+                  <button type="button" class="btn-fill" id="btn-continue-role" data-i18n="continueAsPatient"></button>
+                </div>
+              </div>
+              <div class="home-indicator"></div>
+            </div>
+          </div>
+          <span class="frame-caption">A2 — Ruolo</span>
+        </div>
+
+        <!-- A3 ATTIVAZIONE -->
+        <div class="screen-package">
+          <div class="iphone-frame">
+            <div class="screen-inner">
+              <div class="screen-bg"></div>
+              <header class="status-bar"><span>9:41</span><div class="sb-right"><span class="signal-dots">●●●●</span><span>△</span><span class="battery"><i></i></span><span>100%</span></div></header>
+              <div class="scroll-area">
+                <div class="dots" aria-hidden="true"><span></span><span class="on"></span><span></span><span></span><span></span></div>
+                <h1 class="screen-title" data-i18n="activateTitle"></h1>
+                <p class="subtitle" data-i18n="activateBodyPatient"></p>
+                <p class="label-caps" data-i18n="activationCodeLabel"></p>
+                <div class="code-row" id="code-row-a3">
+                  <div class="code-box"><input maxlength="2" value="B4" aria-label="Code part 1" /></div>
+                  <div class="code-box"><input maxlength="2" value="7K" aria-label="Code part 2" /></div>
+                  <div class="code-box"><input maxlength="2" placeholder="--" aria-label="Code part 3" /></div>
+                </div>
+                <p style="font-size:12px;color:var(--muted2);text-align:center;margin:0 0 18px;" data-i18n="codeFormatHint"></p>
+                <div class="glass" style="padding:16px;margin-bottom:18px;">
+                  <p class="label-caps" style="margin-bottom:8px;" data-i18n="whereCodeTitleCaps"></p>
+                  <p style="margin:0;font-size:14px;line-height:1.45;color:var(--muted);" data-i18n="whereCodeBodyLong"></p>
+                </div>
+                <div class="stack-gap">
+                  <button type="button" class="btn-fill" data-i18n="verifyCodeArrow"></button>
+                  <button type="button" class="btn-ghost" data-i18n="noCode"></button>
+                </div>
+              </div>
+              <div class="home-indicator"></div>
+            </div>
+          </div>
+          <span class="frame-caption">A3 — Attivazione</span>
+        </div>
+
+        <!-- A4 PIANO -->
+        <div class="screen-package">
+          <div class="iphone-frame">
+            <div class="screen-inner">
+              <div class="screen-bg"></div>
+              <header class="status-bar"><span>9:41</span><div class="sb-right"><span class="signal-dots">●●●●</span><span>△</span><span class="battery"><i></i></span><span>100%</span></div></header>
+              <div class="scroll-area">
+                <div class="dots" aria-hidden="true"><span></span><span></span><span class="on"></span><span></span><span></span></div>
+                <h1 class="screen-title" data-i18n="planActive"></h1>
+                <div class="badge-pill">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>
+                  <span data-i18n="connectedFse"></span>
+                </div>
+                <div class="glass-muted" style="padding:4px 16px 12px;margin-bottom:16px;">
+                  <div class="data-row"><span data-i18n="labelPatientRow"></span><span>Mario Rossi</span></div>
+                  <div class="data-row"><span data-i18n="dischargeDate"></span><span data-i18n="rowDischargeDate"></span></div>
+                  <div class="data-row"><span data-i18n="labelUlssShort"></span><span data-i18n="rowUlss"></span></div>
+                  <div class="data-row"><span data-i18n="labelWard"></span><span data-i18n="rowWard"></span></div>
+                  <div class="data-row"><span data-i18n="referringPhysician"></span><span data-i18n="rowPhysician"></span></div>
+                </div>
+                <p class="section-kicker" data-i18n="whatIncludesCaps"></p>
+                <div class="glass" style="padding:12px 16px 16px;">
+                  <div class="feature-line" style="display:flex;gap:10px;padding:10px 0;font-size:14px;border-bottom:1px solid rgba(255,255,255,0.08);"><span>✓</span><span data-i18n="featAppointments"></span></div>
+                  <div class="feature-line" style="display:flex;gap:10px;padding:10px 0;font-size:14px;border-bottom:1px solid rgba(255,255,255,0.08);"><span>✓</span><span data-i18n="featMeds"></span></div>
+                  <div class="feature-line" style="display:flex;gap:10px;padding:10px 0;font-size:14px;border-bottom:1px solid rgba(255,255,255,0.08);"><span>✓</span><span data-i18n="featCheckin"></span></div>
+                  <div class="feature-line" style="display:flex;gap:10px;padding:10px 0;font-size:14px;"><span>✓</span><span data-i18n="featMessages"></span></div>
+                </div>
+                <div style="margin-top:22px;"><button type="button" class="btn-fill btn-fill-blue" data-i18n="enterBetween"></button></div>
+              </div>
+              <div class="home-indicator"></div>
+            </div>
+          </div>
+          <span class="frame-caption">A4 — Piano</span>
+        </div>
+
+        <!-- A5 NOTIFICHE -->
+        <div class="screen-package">
+          <div class="iphone-frame">
+            <div class="screen-inner">
+              <div class="screen-bg"></div>
+              <header class="status-bar"><span>9:41</span><div class="sb-right"><span class="signal-dots">●●●●</span><span>△</span><span class="battery"><i></i></span><span>100%</span></div></header>
+              <div class="scroll-area">
+                <div class="dots" aria-hidden="true"><span></span><span></span><span></span><span class="on"></span><span></span></div>
+                <h1 class="screen-title" data-i18n="stayInformed"></h1>
+                <p class="subtitle" data-i18n="notifIntroLong"></p>
+                <div class="glass notif-row"><span class="ni">💊</span><div class="txt"><strong data-i18n="notifFarmaciTitle"></strong><small data-i18n="notifFarmaciSub"></small></div><span class="notif-ring on">✓</span></div>
+                <div class="glass notif-row"><span class="ni">📅</span><div class="txt"><strong data-i18n="notifAppTitle"></strong><small data-i18n="notifAppSub"></small></div><span class="notif-ring on">✓</span></div>
+                <div class="glass notif-row"><span class="ni">💬</span><div class="txt"><strong data-i18n="notifMsgTitle"></strong><small data-i18n="notifMsgSub"></small></div><span class="notif-ring"></span></div>
+                <div style="margin-top:22px;"><button type="button" class="btn-fill" data-i18n="enableNotifArrow"></button></div>
+                <div style="text-align:center;margin-top:12px;"><button type="button" class="link-muted" data-i18n="skipForNow"></button></div>
+              </div>
+              <div class="home-indicator"></div>
+            </div>
+          </div>
+          <span class="frame-caption">A5 — Notifiche</span>
+        </div>
+
+        <!-- A6 BENVENUTO -->
+        <div class="screen-package">
+          <div class="iphone-frame">
+            <div class="screen-inner">
+              <div class="screen-bg"></div>
+              <header class="status-bar"><span>9:41</span><div class="sb-right"><span class="signal-dots">●●●●</span><span>△</span><span class="battery"><i></i></span><span>100%</span></div></header>
+              <div class="scroll-area" style="display:flex;flex-direction:column;justify-content:center;min-height:100%;">
+                <div style="display:flex;justify-content:center;margin-bottom:24px;"><div class="avatar-round" style="width:72px;height:72px;font-size:34px;">✓</div></div>
+                <h1 class="screen-title" data-i18n="welcomeTitle" style="text-align:center;margin-bottom:14px;"></h1>
+                <p class="subtitle" data-i18n="welcomeBody" style="text-align:center;max-width:290px;margin:0 auto 28px;"></p>
+                <button type="button" class="btn-fill btn-fill-blue" data-i18n="welcomeCta"></button>
+              </div>
+              <div class="home-indicator"></div>
+            </div>
+          </div>
+          <span class="frame-caption">A6 — Benvenuto</span>
+        </div>
+
+        <!-- A7 HOME PAZIENTE -->
+        <div class="screen-package">
+          <div class="iphone-frame">
+            <div class="screen-inner">
+              <div class="screen-bg"></div>
+              <header class="status-bar"><span>9:41</span><div class="sb-right"><span class="signal-dots">●●●●</span><span>△</span><span class="battery"><i></i></span><span>100%</span></div></header>
+              <div class="scroll-area scroll-with-tab">
+                <div class="header-row">
+                  <div>
+                    <div style="font-size:26px;font-weight:750;letter-spacing:-0.03em;" data-i18n="helloMario"></div>
+                    <div style="font-size:14px;color:var(--muted);margin-top:4px;" data-i18n="dayCount"></div>
+                  </div>
+                  <div class="avatar-round">MR</div>
+                </div>
+                <p class="section-kicker" data-i18n="howFeelingCaps"></p>
+                <div class="mood-row">
+                  <button type="button" class="mood-btn on"><span class="emoji">😌</span><span data-i18n="moodSereno"></span></button>
+                  <button type="button" class="mood-btn"><span class="emoji">😞</span><span data-i18n="moodGiu"></span></button>
+                  <button type="button" class="mood-btn"><span class="emoji">😰</span><span data-i18n="moodAnsioso"></span></button>
+                  <button type="button" class="mood-btn"><span class="emoji">😓</span><span data-i18n="moodStanco"></span></button>
+                </div>
+                <p class="section-kicker" data-i18n="nextAppointmentCaps"></p>
+                <div class="glass accent-card">
+                  <div class="meta" data-i18n="patientAppWhen"></div>
+                  <div class="main" data-i18n="patientAppTitle"></div>
+                  <div class="sub" data-i18n="patientAppWhere"></div>
+                </div>
+                <p class="section-kicker" data-i18n="farmaciOggiCaps"></p>
+                <div class="glass med-row done"><span class="sq-check"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></span><span data-i18n="medDonePatient"></span></div>
+                <div class="glass med-row"><span class="sq-check"></span><span data-i18n="medPendingPatient"></span></div>
+              </div>
+              <nav class="tab-bar" aria-label="Tab">
+                <div class="tab on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10.5L12 3l9 7.5V20a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1v-9.5z"/></svg><span data-i18n="tabHome"></span></div>
+                <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5h6m-6 4h6m-9 4h12M9 17h6"/></svg><span data-i18n="tabPlan"></span></div>
+                <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a4 4 0 01-4 4H7l-4 4V7a4 4 0 014-4h10a4 4 0 014 4v8z"/></svg><span data-i18n="tabMessages"></span></div>
+                <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20a8 8 0 0116 0"/></svg><span data-i18n="tabProfile"></span></div>
+              </nav>
+              <div class="home-indicator"></div>
+            </div>
+          </div>
+          <span class="frame-caption">A7 — Home</span>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==================== B — CAREGIVER ==================== -->
+    <section class="flow-section" aria-labelledby="lab-b">
+      <h2 id="lab-b" class="section-label" data-i18n="sectionB"></h2>
+      <div class="screens-row">
+
+        <!-- B1 SPLASH CAREGIVER -->
+        <div class="screen-package">
+          <div class="iphone-frame">
+            <div class="screen-inner">
+              <div class="screen-bg"></div>
+              <header class="status-bar"><span>9:41</span><div class="sb-right"><span class="signal-dots">●●●●</span><span>△</span><span class="battery"><i></i></span><span>100%</span></div></header>
+              <div class="scroll-area">
+                <div class="splash-brand">
+                  <div class="logo">Between</div>
+                  <div class="inst" data-i18n="brandInstitution"></div>
+                </div>
+                <p class="splash-hero" data-i18n="cgSplashHeadline"></p>
+                <p class="splash-body" data-i18n="cgSplashBody"></p>
+                <div class="stack-gap" style="margin-top:8px;">
+                  <button type="button" class="auth-btn auth-btn-spid" aria-label="Login with SPID">
+                    <span class="auth-icon" aria-hidden="true"><span class="spid-mark">SPID</span></span>
+                    <span class="auth-label" data-i18n="loginSpid"></span>
+                  </button>
+                  <button type="button" class="auth-btn auth-btn-cie" aria-label="Login with CIE">
+                    <span class="auth-icon" aria-hidden="true"><span class="cie-mark">CIE</span></span>
+                    <span class="auth-label" data-i18n="loginCie"></span>
+                  </button>
+                </div>
+                <div style="text-align:center;margin-top:18px;">
+                  <button type="button" class="link-muted" data-i18n="cgSplashCodeLink"></button>
+                </div>
+              </div>
+              <div class="home-indicator"></div>
+            </div>
+          </div>
+          <span class="frame-caption">B1 — Splash</span>
+        </div>
+
+        <!-- B2 ACCESSO -->
+        <div class="screen-package">
+          <div class="iphone-frame">
+            <div class="screen-inner">
+              <div class="screen-bg"></div>
+              <header class="status-bar"><span>9:41</span><div class="sb-right"><span class="signal-dots">●●●●</span><span>△</span><span class="battery"><i></i></span><span>100%</span></div></header>
+              <div class="scroll-area">
+                <div class="dots dots--4" aria-hidden="true"><span class="on"></span><span></span><span></span><span></span></div>
+                <h1 class="screen-title" data-i18n="cgLoginTitle"></h1>
+                <p class="subtitle" data-i18n="cgLoginBody"></p>
+                <p class="label-caps" data-i18n="cgSpidLabel"></p>
+                <button type="button" class="auth-btn auth-btn-spid" style="margin-bottom:16px;" aria-label="Login with SPID">
+                  <span class="auth-icon" aria-hidden="true"><span class="spid-mark">SPID</span></span>
+                  <span class="auth-label" data-i18n="loginSpid"></span>
+                </button>
+                <div class="glass" style="padding:16px;">
+                  <p class="label-caps" data-i18n="howItWorksTitle"></p>
+                  <p style="margin:0;font-size:14px;line-height:1.45;color:var(--muted);" data-i18n="howItWorksBody"></p>
+                </div>
+                <div style="margin-top:22px;">
+                  <button type="button" class="auth-btn auth-btn-spid" aria-label="Login with SPID">
+                    <span class="auth-icon" aria-hidden="true"><span class="spid-mark">SPID</span></span>
+                    <span class="auth-label" data-i18n="loginSpid"></span>
+                  </button>
+                </div>
+              </div>
+              <div class="home-indicator"></div>
+            </div>
+          </div>
+          <span class="frame-caption">B2 — Accesso</span>
+        </div>
+
+        <!-- B3 COLLEGAMENTO -->
+        <div class="screen-package">
+          <div class="iphone-frame">
+            <div class="screen-inner">
+              <div class="screen-bg"></div>
+              <header class="status-bar"><span>9:41</span><div class="sb-right"><span class="signal-dots">●●●●</span><span>△</span><span class="battery"><i></i></span><span>100%</span></div></header>
+              <div class="scroll-area">
+                <div class="dots dots--4" aria-hidden="true"><span></span><span class="on"></span><span></span><span></span></div>
+                <h1 class="screen-title" data-i18n="cgConnectTitle"></h1>
+                <p class="subtitle" data-i18n="cgConnectBody"></p>
+                <p class="label-caps" data-i18n="patientCodeLabel"></p>
+                <div class="code-row">
+                  <div class="code-box">M7</div>
+                  <div class="code-box">R2</div>
+                  <div class="code-box" style="color:var(--muted2);">--</div>
+                </div>
+                <p style="font-size:13px;color:var(--muted);margin:0 0 18px;" data-i18n="cgCodeHint"></p>
+                <p class="label-caps" data-i18n="orScan"></p>
+                <button type="button" class="btn-ghost dash-btn" data-i18n="scanQr"></button>
+                <div style="margin-top:22px;"><button type="button" class="btn-fill" data-i18n="connectPatientArrow"></button></div>
+                <div style="text-align:center;margin-top:12px;"><button type="button" class="link-muted" data-i18n="noCodeUlss"></button></div>
+              </div>
+              <div class="home-indicator"></div>
+            </div>
+          </div>
+          <span class="frame-caption">B3 — Collegamento</span>
+        </div>
+
+        <!-- B4 RELAZIONE -->
+        <div class="screen-package">
+          <div class="iphone-frame">
+            <div class="screen-inner">
+              <div class="screen-bg"></div>
+              <header class="status-bar"><span>9:41</span><div class="sb-right"><span class="signal-dots">●●●●</span><span>△</span><span class="battery"><i></i></span><span>100%</span></div></header>
+              <div class="scroll-area">
+                <div class="dots dots--4" aria-hidden="true"><span></span><span></span><span class="on"></span><span></span></div>
+                <h1 class="screen-title" data-i18n="confirmRelationTitle"></h1>
+                <p class="subtitle" data-i18n="confirmRelationSub"></p>
+                <button type="button" class="role-card selected" style="cursor:default;">
+                  <span class="role-avatar" style="font-size:18px;">👪</span>
+                  <span class="flex-grow"><h3 data-i18n="relFamily"></h3><p data-i18n="relFamilySub"></p></span>
+                  <span class="role-check" style="background:var(--text);border-color:var(--text);"><svg viewBox="0 0 24 24" fill="none" stroke="#1a1f28" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></span>
+                </button>
+                <button type="button" class="role-card" style="cursor:default;">
+                  <span class="role-avatar" style="font-size:18px;">🤝</span>
+                  <span class="flex-grow"><h3 data-i18n="relFriend"></h3><p data-i18n="relFriendSub"></p></span>
+                  <span class="role-check"></span>
+                </button>
+                <button type="button" class="role-card" style="cursor:default;">
+                  <span class="role-avatar" style="font-size:18px;">🏠</span>
+                  <span class="flex-grow"><h3 data-i18n="relAssistant"></h3><p data-i18n="relAssistantSub"></p></span>
+                  <span class="role-check"></span>
+                </button>
+                <div style="margin-top:18px;"><button type="button" class="btn-fill" data-i18n="confirmContinueArrow"></button></div>
+              </div>
+              <div class="home-indicator"></div>
+            </div>
+          </div>
+          <span class="frame-caption">B4 — Relazione</span>
+        </div>
+
+        <!-- B5 RIEPILOGO ACCESSO CAREGIVER -->
+        <div class="screen-package">
+          <div class="iphone-frame">
+            <div class="screen-inner">
+              <div class="screen-bg"></div>
+              <header class="status-bar"><span>9:41</span><div class="sb-right"><span class="signal-dots">●●●●</span><span>△</span><span class="battery"><i></i></span><span>100%</span></div></header>
+              <div class="scroll-area">
+                <div class="dots dots--4" aria-hidden="true"><span class="on"></span><span class="on"></span><span class="on"></span><span class="on"></span></div>
+                <h1 class="screen-title" data-i18n="cgAccessTitle"></h1>
+                <div class="badge-pill" style="margin-bottom:20px;"><span data-i18n="cgAccessBadge"></span></div>
+                <div style="display:flex;gap:10px;align-items:stretch;margin-bottom:20px;">
+                  <div class="glass" style="flex:1;padding:14px;">
+                    <p class="label-caps" data-i18n="cgCanSeeTitle"></p>
+                    <div style="font-size:13px;line-height:1.45;display:flex;flex-direction:column;gap:6px;">
+                      <span>✓ <span data-i18n="cgCanSee1"></span></span>
+                      <span>✓ <span data-i18n="cgCanSee2"></span></span>
+                      <span>✓ <span data-i18n="cgCanSee3"></span></span>
+                      <span>✓ <span data-i18n="cgCanSee4"></span></span>
+                    </div>
+                  </div>
+                  <div class="glass" style="flex:1;padding:14px;">
+                    <p class="label-caps" data-i18n="cgCannotSeeTitle"></p>
+                    <div style="font-size:13px;line-height:1.45;display:flex;flex-direction:column;gap:6px;">
+                      <span>🔒 <span data-i18n="cgCannotSee1"></span></span>
+                      <span>🔒 <span data-i18n="cgCannotSee2"></span></span>
+                    </div>
+                  </div>
+                </div>
+                <button type="button" class="btn-fill btn-fill-blue" data-i18n="cgEnterCta"></button>
+              </div>
+              <div class="home-indicator"></div>
+            </div>
+          </div>
+          <span class="frame-caption">B5 — Riepilogo</span>
+        </div>
+
+        <!-- B6 HOME CAREGIVER -->
+        <div class="screen-package">
+          <div class="iphone-frame">
+            <div class="screen-inner">
+              <div class="screen-bg"></div>
+              <header class="status-bar"><span>9:41</span><div class="sb-right"><span class="signal-dots">●●●●</span><span>△</span><span class="battery"><i></i></span><span>100%</span></div></header>
+              <div class="scroll-area scroll-with-tab">
+                <div class="header-row">
+                  <div>
+                    <div style="font-size:26px;font-weight:750;" data-i18n="helloLaura"></div>
+                    <div style="font-size:14px;color:var(--muted);margin-top:4px;" data-i18n="caregiverOf"></div>
+                  </div>
+                  <div class="avatar-round">LB</div>
+                </div>
+                <p class="section-kicker" data-i18n="statusMarioCaps"></p>
+                <div class="glass accent-card">
+                  <div class="meta" data-i18n="cgCheckinMeta"></div>
+                  <div class="main" data-i18n="cgStatusLine"></div>
+                  <div class="sub" data-i18n="cgTherapyLine"></div>
+                </div>
+                <p class="section-kicker" data-i18n="nextAppointmentCaps"></p>
+                <div class="glass accent-card">
+                  <div class="meta" data-i18n="cgAppWhen"></div>
+                  <div class="main" data-i18n="cgAppTitle"></div>
+                  <div class="sub" data-i18n="cgAppMeta"></div>
+                </div>
+                <p class="section-kicker" data-i18n="quickActions"></p>
+                <div class="quick-actions">
+                  <div class="qa-pill"><span style="font-size:20px;">📋</span><span data-i18n="qaPiano"></span></div>
+                  <div class="qa-pill"><span style="font-size:20px;">💊</span><span data-i18n="qaFarmaci"></span></div>
+                  <div class="qa-pill"><span style="font-size:20px;">✉️</span><span data-i18n="qaMessaggi"></span></div>
+                </div>
+              </div>
+              <nav class="tab-bar" aria-label="Tab">
+                <div class="tab on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10.5L12 3l9 7.5V20a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1v-9.5z"/></svg><span data-i18n="tabHome"></span></div>
+                <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 2v4m8-4v4M3 10h18M5 4h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2z"/></svg><span data-i18n="tabPlan"></span></div>
+                <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a4 4 0 01-4 4H7l-4 4V7a4 4 0 014-4h10a4 4 0 014 4v8z"/></svg><span data-i18n="tabMessages"></span></div>
+                <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20a8 8 0 0116 0"/></svg><span data-i18n="tabProfile"></span></div>
+              </nav>
+              <div class="home-indicator"></div>
+            </div>
+          </div>
+          <span class="frame-caption">B6 — Home caregiver</span>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==================== C — OPERATORE SANITARIO ==================== -->
+    <section class="flow-section" aria-labelledby="lab-c">
+      <h2 id="lab-c" class="section-label" data-i18n="sectionC"></h2>
+      <div class="screens-row">
+
+        <!-- C1 SPLASH OPERATORE -->
+        <div class="screen-package">
+          <div class="iphone-frame">
+            <div class="screen-inner">
+              <div class="screen-bg"></div>
+              <header class="status-bar"><span>9:41</span><div class="sb-right"><span class="signal-dots">●●●●</span><span>△</span><span class="battery"><i></i></span><span>100%</span></div></header>
+              <div class="scroll-area">
+                <div class="op-badge"><span>🛡</span><span data-i18n="professionalAccess"></span></div>
+                <div class="splash-brand">
+                  <div class="logo">Between</div>
+                </div>
+                <p class="splash-hero" data-i18n="opSplashTagline"></p>
+                <p class="splash-body" data-i18n="opSplashBody"></p>
+                <button type="button" class="btn-fill" data-i18n="opSplashCta"></button>
+              </div>
+              <div class="home-indicator"></div>
+            </div>
+          </div>
+          <span class="frame-caption">C1 — Splash operatore</span>
+        </div>
+
+        <!-- C2 ACCESSO OPERATORE -->
+        <div class="screen-package">
+          <div class="iphone-frame">
+            <div class="screen-inner">
+              <div class="screen-bg"></div>
+              <header class="status-bar"><span>9:41</span><div class="sb-right"><span class="signal-dots">●●●●</span><span>△</span><span class="battery"><i></i></span><span>100%</span></div></header>
+              <div class="scroll-area">
+                <div class="op-badge"><span>🛡</span><span data-i18n="professionalAccess"></span></div>
+                <h1 class="screen-title" data-i18n="opProductTitle"></h1>
+                <p class="subtitle" data-i18n="opLoginLead"></p>
+                <p class="label-caps" data-i18n="opIdLabel"></p>
+                <input class="input-dark" type="text" value="DR-FERR-2847" readonly />
+                <p class="label-caps" style="margin-top:14px;" data-i18n="opPassLabel"></p>
+                <input class="input-dark" type="password" value="password" readonly />
+                <p style="font-size:12px;color:var(--muted2);margin-top:8px;" data-i18n="opCredScope"></p>
+                <div style="margin-top:22px;"><button type="button" class="btn-fill" data-i18n="loginArrow"></button></div>
+                <div style="text-align:center;margin-top:16px;"><button type="button" class="link-muted" data-i18n="opHelpLink"></button></div>
+              </div>
+              <div class="home-indicator"></div>
+            </div>
+          </div>
+          <span class="frame-caption">C2 — Accesso operatore</span>
+        </div>
+
+        <!-- C3 ATTIVAZIONE PAZIENTE -->
+        <div class="screen-package">
+          <div class="iphone-frame">
+            <div class="screen-inner">
+              <div class="screen-bg"></div>
+              <header class="status-bar"><span>9:41</span><div class="sb-right"><span class="signal-dots">●●●●</span><span>△</span><span class="battery"><i></i></span><span>100%</span></div></header>
+              <div class="scroll-area">
+                <h1 class="screen-title" data-i18n="opActivateTitle"></h1>
+                <p class="subtitle" data-i18n="opActivateBody"></p>
+                <p class="label-caps" data-i18n="searchPatient"></p>
+                <input class="input-dark" type="search" placeholder="" data-i18n-placeholder="searchPlaceholder" id="op-search-ph" />
+                <div class="glass patient-card-sel">
+                  <div class="initials">MR</div>
+                  <div class="grow"><strong>Mario Rossi</strong><span data-i18n="opPatientCfLine"></span></div>
+                  <div class="check"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#1a1f28" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></div>
+                </div>
+                <div class="glass-muted" style="padding:4px 16px 12px;">
+                  <div class="data-row"><span data-i18n="dischargeDate"></span><span data-i18n="rowDischargeDate"></span></div>
+                  <div class="data-row"><span data-i18n="mainDiagnosis"></span><span data-i18n="diagnosisValue"></span></div>
+                  <div class="data-row"><span data-i18n="destination"></span><span data-i18n="destinationHome"></span></div>
+                </div>
+                <div style="margin-top:18px;"><button type="button" class="btn-fill" data-i18n="generateCodeArrow"></button></div>
+              </div>
+              <div class="home-indicator"></div>
+            </div>
+          </div>
+          <span class="frame-caption">C3 — Attivazione paziente</span>
+        </div>
+
+        <!-- C4 CONFIGURAZIONE PIANO -->
+        <div class="screen-package">
+          <div class="iphone-frame">
+            <div class="screen-inner">
+              <div class="screen-bg"></div>
+              <header class="status-bar"><span>9:41</span><div class="sb-right"><span class="signal-dots">●●●●</span><span>△</span><span class="battery"><i></i></span><span>100%</span></div></header>
+              <div class="scroll-area">
+                <h1 class="screen-title" data-i18n="opConfigTitle"></h1>
+                <p class="subtitle" data-i18n="opConfigSubtitle"></p>
+                <div class="glass notif-row"><span class="ni">💊</span><div class="txt"><strong data-i18n="opModuleFarmaci"></strong><small data-i18n="opModuleFarmaciSub"></small></div><span class="notif-ring on">✓</span></div>
+                <div class="glass notif-row"><span class="ni">🧠</span><div class="txt"><strong data-i18n="opModulePsico"></strong><small data-i18n="opModulePsicoSub"></small></div><span class="notif-ring on">✓</span></div>
+                <div class="glass notif-row"><span class="ni">🏃</span><div class="txt"><strong data-i18n="opModuleFisio"></strong><small data-i18n="opModuleFisioSub"></small></div><span class="notif-ring"></span></div>
+                <div class="glass notif-row"><span class="ni">💬</span><div class="txt"><strong data-i18n="opModuleMsg"></strong><small data-i18n="opModuleMsgSub"></small></div><span class="notif-ring on">✓</span></div>
+                <div style="margin-top:22px;"><button type="button" class="btn-fill" data-i18n="opConfigCta"></button></div>
+              </div>
+              <div class="home-indicator"></div>
+            </div>
+          </div>
+          <span class="frame-caption">C4 — Configurazione</span>
+        </div>
+
+        <!-- C5 CODICE GENERATO -->
+        <div class="screen-package">
+          <div class="iphone-frame">
+            <div class="screen-inner">
+              <div class="screen-bg"></div>
+              <header class="status-bar"><span>9:41</span><div class="sb-right"><span class="signal-dots">●●●●</span><span>△</span><span class="battery"><i></i></span><span>100%</span></div></header>
+              <div class="scroll-area">
+                <h1 class="screen-title" data-i18n="codeGenerated"></h1>
+                <p class="subtitle" data-i18n="codeGeneratedSub"></p>
+                <div class="glass" style="padding:16px;margin-bottom:12px;">
+                  <p class="label-caps" data-i18n="patientCodeCard"></p>
+                  <div class="code-big">B4 · 7K · R9</div>
+                  <p style="font-size:12px;color:var(--muted2);margin:0;" data-i18n="patientCodeExpiry"></p>
+                </div>
+                <div class="glass" style="padding:16px;margin-bottom:18px;">
+                  <p class="label-caps" data-i18n="caregiverCodeCard"></p>
+                  <div class="code-big">M7 · R2 · X1</div>
+                  <p style="font-size:12px;color:var(--muted2);margin:0;" data-i18n="caregiverCodeMeta"></p>
+                </div>
+                <button type="button" class="btn-fill" style="margin-bottom:10px;"><span style="font-size:18px;margin-right:6px;">✈️</span><span data-i18n="sendSms"></span></button>
+                <button type="button" class="btn-ghost" data-i18n="printLetter"></button>
+              </div>
+              <div class="home-indicator"></div>
+            </div>
+          </div>
+          <span class="frame-caption">C5 — Codice generato</span>
+        </div>
+
+        <!-- C6 DASHBOARD -->
+        <div class="screen-package">
+          <div class="iphone-frame">
+            <div class="screen-inner">
+              <div class="screen-bg"></div>
+              <header class="status-bar"><span>9:41</span><div class="sb-right"><span class="signal-dots">●●●●</span><span>△</span><span class="battery"><i></i></span><span>100%</span></div></header>
+              <div class="scroll-area scroll-with-tab">
+                <div class="header-row">
+                  <div>
+                    <div style="font-size:24px;font-weight:750;" data-i18n="operatorName"></div>
+                    <div style="font-size:14px;color:var(--muted);margin-top:4px;" data-i18n="operatorDept"></div>
+                  </div>
+                  <div class="avatar-round">SF</div>
+                </div>
+                <p class="section-kicker" data-i18n="assignedPatients"></p>
+                <div class="glass list-card">
+                  <div class="initials">MR</div>
+                  <div class="grow"><strong>Mario Rossi</strong><span data-i18n="dashPt1"></span></div>
+                  <span style="font-size:18px;">✓</span>
+                </div>
+                <div class="glass list-card">
+                  <div class="initials">AG</div>
+                  <div class="grow"><strong>Anna Galli</strong><span data-i18n="dashPt2"></span></div>
+                  <span style="font-size:18px;color:#ffb020;">!</span>
+                </div>
+                <div class="glass list-card">
+                  <div class="initials">LM</div>
+                  <div class="grow"><strong>Luigi Mele</strong><span data-i18n="dashPt3"></span></div>
+                  <span style="font-size:16px;">⏱</span>
+                </div>
+              </div>
+              <nav class="tab-bar op-tabs" aria-label="Tab operatore">
+                <div class="tab on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg><span data-i18n="tabOpPatients"></span></div>
+                <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 106 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg><span data-i18n="tabOpAlerts"></span></div>
+                <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a4 4 0 01-4 4H7l-4 4V7a4 4 0 014-4h10a4 4 0 014 4v8z"/></svg><span data-i18n="tabOpMessages"></span></div>
+                <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg><span data-i18n="tabOpSettings"></span></div>
+              </nav>
+              <div class="home-indicator"></div>
+            </div>
+          </div>
+          <span class="frame-caption">C6 — Dashboard operatore</span>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+(function () {
+  var params = new URLSearchParams(window.location.search);
+  var section = params.get("section");
+  if (section) {
+    var sectionMap = { a: "lab-a", b: "lab-b", c: "lab-c" };
+    var allSections = document.querySelectorAll(".flow-section");
+    allSections.forEach(function (el) {
+      el.style.display = "none";
+    });
+    var targetId = sectionMap[section.toLowerCase()];
+    if (targetId) {
+      var target = document.getElementById(targetId);
+      if (target) {
+        target.closest(".flow-section").style.display = "block";
+      }
+    }
+  }
+})();
+
+(function () {
+  var navParams = new URLSearchParams(window.location.search);
+  var currentSection = navParams.get("section");
+  var activeKey = currentSection ? currentSection.toLowerCase() : "all";
+
+  var wrap = document.createElement("div");
+  wrap.className = "lang-toggle";
+  wrap.setAttribute("role", "group");
+  wrap.setAttribute("aria-label", "Sezione");
+  wrap.style.cssText =
+    "position:fixed;bottom:14px;left:14px;top:auto;right:auto;z-index:9999;flex-direction:column;align-items:flex-start;gap:6px;";
+
+  var caption = document.createElement("div");
+  caption.textContent = "SEZIONE";
+  caption.style.cssText =
+    "font-size:9px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#f8f7f4;margin:0;padding:0 2px 2px 4px;width:100%;";
+
+  var row = document.createElement("div");
+  row.style.cssText = "display:flex;align-items:center;gap:4px;flex-wrap:nowrap;";
+
+  function makeSep() {
+    var s = document.createElement("span");
+    s.className = "sep";
+    return s;
+  }
+
+  function makeBtn(label, key) {
+    var b = document.createElement("button");
+    b.type = "button";
+    b.textContent = label;
+    if (activeKey === key) {
+      b.classList.add("active");
+    }
+    b.addEventListener("click", function () {
+      var u = new URL(window.location.href);
+      if (key === "all") {
+        u.searchParams.delete("section");
+      } else {
+        u.searchParams.set("section", key);
+      }
+      window.location.href = u.toString();
+    });
+    return b;
+  }
+
+  row.appendChild(makeBtn("A", "a"));
+  row.appendChild(makeSep());
+  row.appendChild(makeBtn("B", "b"));
+  row.appendChild(makeSep());
+  row.appendChild(makeBtn("C", "c"));
+  row.appendChild(makeSep());
+  row.appendChild(makeBtn("ALL", "all"));
+
+  wrap.appendChild(caption);
+  wrap.appendChild(row);
+  document.body.appendChild(wrap);
+})();
+
+(function () {
+  const STRINGS = {
+    it: {
+      sectionA: "A — Paziente",
+      sectionB: "B — Caregiver",
+      sectionC: "C — Operatore sanitario",
+      brandInstitution: "FSE KM ZERO · REGIONE VENETO",
+      splashHeadline: "Il tuo spazio di cura continua.",
+      splashBody: "Dopo la dimissione, Between ti accompagna passo dopo passo nel percorso di recupero — in coordinamento con il tuo team ULSS.",
+      loginSpid: "Entra con SPID",
+      loginCie: "Entra con CIE",
+      activationQuestion: "Hai già un codice di attivazione?",
+      roleTitle: "Chi sei in questo percorso?",
+      roleSubtitle: "Between adatta contenuti e azioni al tuo ruolo nel piano di cura.",
+      rolePatient: "Paziente",
+      rolePatientDesc: "Gestisci la tua cura in prima persona",
+      roleCaregiver: "Caregiver",
+      roleCaregiverDesc: "Supporti un familiare o una persona cara",
+      roleHcp: "Operatore sanitario",
+      roleHcpDesc: "Accesso professionale ULSS",
+      continueAsPatient: "Continua come Paziente →",
+      continueAsCaregiver: "Continua come Caregiver →",
+      continueAsHcp: "Continua come Operatore sanitario →",
+      activateTitle: "Attiva il tuo percorso.",
+      activateBodyPatient: "L'operatore ULSS ha generato un codice al momento della tua dimissione. Inseriscilo qui per collegare Between al tuo fascicolo.",
+      activationCodeLabel: "Codice di attivazione",
+      codeFormatHint: "6 caratteri — maiuscole e numeri",
+      whereCodeTitleCaps: "DOVE SI TROVA IL CODICE?",
+      whereCodeBodyLong: "Nella lettera di dimissione cartacea oppure nell'SMS inviato dall'ULSS al tuo numero di telefono registrato.",
+      verifyCodeArrow: "Verifica codice →",
+      noCode: "Non ho un codice",
+      planActive: "Il tuo piano è attivo.",
+      connectedFse: "Collegato a FSE Km Zero",
+      labelPatientRow: "Paziente",
+      dischargeDate: "Data dimissione",
+      rowDischargeDate: "14 mag 2025",
+      labelUlssShort: "ULSS",
+      rowUlss: "ULSS 6 Euganea",
+      labelWard: "Reparto",
+      rowWard: "Neurologia",
+      referringPhysician: "Medico referente",
+      rowPhysician: "Dr.ssa Ferretti",
+      whatIncludesCaps: "COSA INCLUDE BETWEEN",
+      featAppointments: "Appuntamenti e visite di controllo",
+      featMeds: "Farmaci e promemoria giornalieri",
+      featCheckin: "Check-in emotivi settimanali",
+      featMessages: "Messaggi con il team ULSS",
+      enterBetween: "Entra in Between",
+      stayInformed: "Rimani aggiornato.",
+      notifIntroLong: "Abilita le notifiche per ricevere promemoria sui farmaci, avvisi su appuntamenti e messaggi dal tuo team ULSS.",
+      notifFarmaciTitle: "Farmaci",
+      notifFarmaciSub: "Promemoria mattina e sera",
+      notifAppTitle: "Appuntamenti",
+      notifAppSub: "24h prima della visita",
+      notifMsgTitle: "Messaggi ULSS",
+      notifMsgSub: "Comunicazioni dal team",
+      enableNotifArrow: "Abilita notifiche →",
+      skipForNow: "Salta per ora",
+      welcomeTitle: "Sei pronto, Mario.",
+      welcomeBody: "Il tuo percorso di cura inizia adesso. Between è qui con te, ogni giorno.",
+      welcomeCta: "Inizia il tuo percorso →",
+      helloMario: "Ciao, Mario.",
+      dayCount: "Giorno 2 dal rientro a casa",
+      howFeelingCaps: "COME STAI OGGI?",
+      moodSereno: "Sereno",
+      moodGiu: "Giù",
+      moodAnsioso: "Ansioso",
+      moodStanco: "Stanco",
+      nextAppointmentCaps: "PROSSIMO APPUNTAMENTO",
+      patientAppWhen: "Domani · 10:30",
+      patientAppTitle: "Visita neurologica di controllo",
+      patientAppWhere: "ULSS 6 Euganea · Pad. C, piano 2",
+      farmaciOggiCaps: "FARMACI OGGI",
+      medDonePatient: "Aspirina 100mg · mattina",
+      medPendingPatient: "Ramipril 5mg · sera · 20:00",
+      tabHome: "Home",
+      tabPlan: "Piano",
+      tabMessages: "Messaggi",
+      tabProfile: "Profilo",
+      cgSplashHeadline: "Sei al fianco di chi ami.",
+      cgSplashBody: "Between ti permette di seguire il percorso di cura di chi ti è vicino, in coordinamento con il team ULSS.",
+      cgSplashCodeLink: "Hai un codice caregiver?",
+      cgAccessTitle: "Accesso configurato.",
+      cgAccessBadge: "Collegato a Mario Rossi",
+      cgCanSeeTitle: "PUOI VEDERE",
+      cgCanSee1: "Piano di cura",
+      cgCanSee2: "Appuntamenti",
+      cgCanSee3: "Farmaci",
+      cgCanSee4: "Messaggi ULSS",
+      cgCannotSeeTitle: "NON VISIBILE",
+      cgCannotSee1: "Referti clinici",
+      cgCannotSee2: "Note mediche",
+      cgEnterCta: "Entra come Caregiver →",
+      cgLoginTitle: "Sei il caregiver di qualcuno?",
+      cgLoginBody: "Accedi con le tue credenziali. Poi collegherai il tuo account al percorso del paziente che segui.",
+      cgSpidLabel: "Il tuo SPID / CIE",
+      cgSpidRowArrow: "Accedi con SPID →",
+      howItWorksTitle: "COME FUNZIONA",
+      howItWorksBody: "Il paziente o l'operatore ULSS ti avrà inviato un link o un codice per aggiungere il tuo accesso al piano di cura condiviso.",
+      cgConnectTitle: "Collega il paziente che segui.",
+      cgConnectBody: "Inserisci il codice che il paziente o l'ULSS ti ha inviato per aggiungere il tuo accesso al piano condiviso.",
+      patientCodeLabel: "Codice del paziente",
+      cgCodeHint: "Trovi il codice nell'SMS o nella lettera di dimissione",
+      orScan: "OPPURE SCANSIONA",
+      scanQr: "Scansiona QR code",
+      connectPatientArrow: "Collega paziente →",
+      noCodeUlss: "Non ho un codice — contatta ULSS",
+      confirmRelationTitle: "Conferma la tua relazione.",
+      confirmRelationSub: "Come sei collegato/a a Mario Rossi?",
+      relFamily: "Familiare",
+      relFamilySub: "Coniuge, figlio/a, genitore",
+      relFriend: "Amico/a di fiducia",
+      relFriendSub: "Persona di riferimento designata",
+      relAssistant: "Assistente professionale",
+      relAssistantSub: "Badante o assistente domiciliare",
+      confirmContinueArrow: "Conferma e continua →",
+      helloLaura: "Ciao, Laura.",
+      caregiverOf: "Caregiver di Mario Rossi",
+      statusMarioCaps: "STATO DI MARIO OGGI",
+      cgCheckinMeta: "Ultimo check-in · stamattina",
+      cgStatusLine: "Si sente sereno 😌",
+      cgTherapyLine: "Ha assunto la terapia mattutina",
+      cgAppWhen: "Domani · 10:30",
+      cgAppTitle: "Visita neurologica",
+      cgAppMeta: "ULSS 6 · Pad. C — accompagnamento previsto",
+      quickActions: "AZIONI RAPIDE",
+      qaPiano: "Piano",
+      qaFarmaci: "Farmaci",
+      qaMessaggi: "Messaggi",
+      professionalAccess: "Accesso professionale",
+      opSplashTagline: "Gestisci le dimissioni protette.",
+      opSplashBody: "Attiva Between per i tuoi pazienti al momento della dimissione. Il piano di cura parte da qui.",
+      opSplashCta: "Accedi con credenziali ULSS →",
+      opProductTitle: "Between Operatori ULSS",
+      opLoginLead: "Accedi con le credenziali istituzionali per gestire le dimissioni protette e monitorare i pazienti assegnati.",
+      opIdLabel: "Codice operatore / Badge ULSS",
+      opPassLabel: "Password istituzionale",
+      opCredScope: "Credenziali ULSS 6 Euganea",
+      loginArrow: "Accedi →",
+      opHelpLink: "Problemi di accesso? Contatta IT ULSS",
+      opActivateTitle: "Attiva Between per il paziente.",
+      opActivateBody: "Seleziona il paziente dal FSE e genera il codice di attivazione da consegnare al momento della dimissione.",
+      searchPatient: "Cerca paziente",
+      searchPlaceholder: "Nome, CF o ID reparto…",
+      opPatientCfLine: "CF: RSSMRA65 · Neurologia",
+      mainDiagnosis: "Diagnosi principale",
+      diagnosisValue: "Ictus ischemico",
+      destination: "Destinazione",
+      destinationHome: "Domicilio",
+      opConfigTitle: "Configura il piano.",
+      opConfigSubtitle: "Seleziona i moduli da attivare per Mario Rossi.",
+      opModuleFarmaci: "Terapia farmacologica",
+      opModuleFarmaciSub: "Promemoria e aderenza",
+      opModulePsico: "Supporto psicologico",
+      opModulePsicoSub: "Check-in emotivi settimanali",
+      opModuleFisio: "Fisioterapia domiciliare",
+      opModuleFisioSub: "Sessioni e progressi",
+      opModuleMsg: "Messaggistica ULSS",
+      opModuleMsgSub: "Comunicazione diretta",
+      opConfigCta: "Genera codice attivazione →",
+      generateCodeArrow: "Genera codice attivazione →",
+      codeGenerated: "Codice generato.",
+      codeGeneratedSub: "Consegna questo codice al paziente e al caregiver. Scade in 72 ore.",
+      patientCodeCard: "CODICE ATTIVAZIONE PAZIENTE",
+      patientCodeExpiry: "Scade: 17 mag 2026 · 18:00",
+      caregiverCodeCard: "CODICE CAREGIVER",
+      caregiverCodeMeta: "Per Laura Bianchi · familiare",
+      sendSms: "Invia via SMS al paziente",
+      printLetter: "Stampa lettera di dimissione",
+      operatorName: "Dr.ssa Ferretti",
+      operatorDept: "ULSS 6 · Neurologia",
+      assignedPatients: "PAZIENTI IN CARICO",
+      dashPt1: "Dimesso ieri · check-in",
+      dashPt2: "Dimessa 3 gg fa · nessun check-in",
+      dashPt3: "Dimesso oggi · attivazione pendente",
+      tabOpPatients: "Pazienti",
+      tabOpAlerts: "Allerte",
+      tabOpMessages: "Messaggi",
+      tabOpSettings: "Impostaz."
+    },
+    en: {
+      sectionA: "A — Patient",
+      sectionB: "B — Caregiver",
+      sectionC: "C — Healthcare professional",
+      brandInstitution: "FSE KM ZERO · VENETO REGION",
+      splashHeadline: "Your ongoing care space.",
+      splashBody: "After discharge, Between walks with you step by step through recovery — in coordination with your ULSS team.",
+      loginSpid: "Log in with SPID",
+      loginCie: "Log in with CIE",
+      activationQuestion: "Already have an activation code?",
+      roleTitle: "What is your role in this journey?",
+      roleSubtitle: "Between adapts content and actions to your role in the care plan.",
+      rolePatient: "Patient",
+      rolePatientDesc: "Manage your own care",
+      roleCaregiver: "Caregiver",
+      roleCaregiverDesc: "You support a loved one",
+      roleHcp: "Healthcare professional",
+      roleHcpDesc: "ULSS professional access",
+      continueAsPatient: "Continue as Patient →",
+      continueAsCaregiver: "Continue as Caregiver →",
+      continueAsHcp: "Continue as Healthcare professional →",
+      activateTitle: "Activate your journey.",
+      activateBodyPatient: "Your ULSS operator generated a code at discharge. Enter it here to link Between to your record.",
+      activationCodeLabel: "Activation code",
+      codeFormatHint: "6 characters — uppercase letters and numbers",
+      whereCodeTitleCaps: "WHERE DO I FIND THE CODE?",
+      whereCodeBodyLong: "In your paper discharge letter or in the SMS sent by ULSS to your registered phone number.",
+      verifyCodeArrow: "Verify code →",
+      noCode: "I don't have a code",
+      planActive: "Your plan is active.",
+      connectedFse: "Connected to FSE Km Zero",
+      labelPatientRow: "Patient",
+      dischargeDate: "Discharge date",
+      rowDischargeDate: "14 May 2025",
+      labelUlssShort: "ULSS",
+      rowUlss: "ULSS 6 Euganea",
+      labelWard: "Ward",
+      rowWard: "Neurology",
+      referringPhysician: "Referring physician",
+      rowPhysician: "Dr. Ferretti",
+      whatIncludesCaps: "WHAT BETWEEN INCLUDES",
+      featAppointments: "Appointments and check-up visits",
+      featMeds: "Medications and daily reminders",
+      featCheckin: "Weekly emotional check-ins",
+      featMessages: "Messages with your ULSS team",
+      enterBetween: "Enter Between",
+      stayInformed: "Stay informed.",
+      notifIntroLong: "Enable notifications for medication reminders, appointment alerts, and messages from your ULSS team.",
+      notifFarmaciTitle: "Medications",
+      notifFarmaciSub: "Morning and evening reminders",
+      notifAppTitle: "Appointments",
+      notifAppSub: "24h before the visit",
+      notifMsgTitle: "ULSS messages",
+      notifMsgSub: "Communication from the team",
+      enableNotifArrow: "Enable notifications →",
+      skipForNow: "Skip for now",
+      welcomeTitle: "You're ready, Mario.",
+      welcomeBody: "Your care journey starts now. Between is here with you, every day.",
+      welcomeCta: "Start your journey →",
+      helloMario: "Hello, Mario.",
+      dayCount: "Day 2 since returning home",
+      howFeelingCaps: "HOW ARE YOU TODAY?",
+      moodSereno: "Calm",
+      moodGiu: "Low",
+      moodAnsioso: "Anxious",
+      moodStanco: "Tired",
+      nextAppointmentCaps: "NEXT APPOINTMENT",
+      patientAppWhen: "Tomorrow · 10:30",
+      patientAppTitle: "Neurology follow-up visit",
+      patientAppWhere: "ULSS 6 Euganea · Bldg C, 2nd floor",
+      farmaciOggiCaps: "TODAY'S MEDICATION",
+      medDonePatient: "Aspirin 100mg · morning",
+      medPendingPatient: "Ramipril 5mg · evening · 8:00 PM",
+      tabHome: "Home",
+      tabPlan: "Plan",
+      tabMessages: "Messages",
+      tabProfile: "Profile",
+      cgSplashHeadline: "You're there for someone you love.",
+      cgSplashBody: "Between lets you follow the care journey of your loved one, in coordination with the ULSS team.",
+      cgSplashCodeLink: "Already have a caregiver code?",
+      cgAccessTitle: "Access configured.",
+      cgAccessBadge: "Connected to Mario Rossi",
+      cgCanSeeTitle: "YOU CAN SEE",
+      cgCanSee1: "Care plan",
+      cgCanSee2: "Appointments",
+      cgCanSee3: "Medications",
+      cgCanSee4: "ULSS messages",
+      cgCannotSeeTitle: "NOT VISIBLE",
+      cgCannotSee1: "Clinical reports",
+      cgCannotSee2: "Medical notes",
+      cgEnterCta: "Enter as Caregiver →",
+      cgLoginTitle: "Are you someone's caregiver?",
+      cgLoginBody: "Sign in with your credentials. Then you'll link your account to the patient's pathway you support.",
+      cgSpidLabel: "Your SPID / CIE",
+      cgSpidRowArrow: "Login with SPID →",
+      howItWorksTitle: "HOW IT WORKS",
+      howItWorksBody: "The patient or ULSS operator will have sent you a link or code to add your access to the shared care plan.",
+      cgConnectTitle: "Connect the patient you support.",
+      cgConnectBody: "Enter the code the patient or ULSS sent you to add your access to the shared plan.",
+      patientCodeLabel: "Patient code",
+      cgCodeHint: "You'll find the code in the SMS or discharge letter",
+      orScan: "OR SCAN",
+      scanQr: "Scan QR code",
+      connectPatientArrow: "Connect patient →",
+      noCodeUlss: "I don't have a code — contact ULSS",
+      confirmRelationTitle: "Confirm your relationship.",
+      confirmRelationSub: "How are you connected to Mario Rossi?",
+      relFamily: "Family member",
+      relFamilySub: "Spouse, child, parent",
+      relFriend: "Trusted friend",
+      relFriendSub: "Designated contact person",
+      relAssistant: "Professional assistant",
+      relAssistantSub: "Carer or home assistant",
+      confirmContinueArrow: "Confirm and continue →",
+      helloLaura: "Hello, Laura.",
+      caregiverOf: "Caregiver of Mario Rossi",
+      statusMarioCaps: "MARIO'S STATUS TODAY",
+      cgCheckinMeta: "Last check-in · this morning",
+      cgStatusLine: "Feeling calm 😌",
+      cgTherapyLine: "Took morning medication",
+      cgAppWhen: "Tomorrow · 10:30",
+      cgAppTitle: "Neurology visit",
+      cgAppMeta: "ULSS 6 · Ward C — accompaniment planned",
+      quickActions: "QUICK ACTIONS",
+      qaPiano: "Plan",
+      qaFarmaci: "Meds",
+      qaMessaggi: "Messages",
+      professionalAccess: "Professional access",
+      opSplashTagline: "Manage protected discharges.",
+      opSplashBody: "Activate Between for your patients at discharge. The care plan starts here.",
+      opSplashCta: "Log in with ULSS credentials →",
+      opProductTitle: "Between ULSS Operators",
+      opLoginLead: "Sign in with institutional credentials to manage protected discharges and monitor assigned patients.",
+      opIdLabel: "Operator code / ULSS badge",
+      opPassLabel: "Institutional password",
+      opCredScope: "ULSS 6 Euganea credentials",
+      loginArrow: "Log in →",
+      opHelpLink: "Login issues? Contact ULSS IT",
+      opActivateTitle: "Activate Between for the patient.",
+      opActivateBody: "Select the patient from FSE and generate the activation code to hand over at discharge.",
+      searchPatient: "Search patient",
+      searchPlaceholder: "Name, fiscal code or ward ID…",
+      opPatientCfLine: "FC: RSSMRA65 · Neurology",
+      mainDiagnosis: "Main diagnosis",
+      diagnosisValue: "Ischaemic stroke",
+      destination: "Destination",
+      destinationHome: "Home",
+      opConfigTitle: "Configure the plan.",
+      opConfigSubtitle: "Select the modules to activate for Mario Rossi.",
+      opModuleFarmaci: "Medication therapy",
+      opModuleFarmaciSub: "Reminders and adherence",
+      opModulePsico: "Psychological support",
+      opModulePsicoSub: "Weekly emotional check-ins",
+      opModuleFisio: "Home physiotherapy",
+      opModuleFisioSub: "Sessions and progress",
+      opModuleMsg: "ULSS messaging",
+      opModuleMsgSub: "Direct communication",
+      opConfigCta: "Generate activation code →",
+      generateCodeArrow: "Generate activation code →",
+      codeGenerated: "Code generated.",
+      codeGeneratedSub: "Give this code to the patient and caregiver. It expires in 72 hours.",
+      patientCodeCard: "PATIENT ACTIVATION CODE",
+      patientCodeExpiry: "Expires: 17 May 2026 · 6:00 PM",
+      caregiverCodeCard: "CAREGIVER CODE",
+      caregiverCodeMeta: "For Laura Bianchi · family member",
+      sendSms: "Send SMS to patient",
+      printLetter: "Print discharge letter",
+      operatorName: "Dr. Ferretti",
+      operatorDept: "ULSS 6 · Neurology",
+      assignedPatients: "ASSIGNED PATIENTS",
+      dashPt1: "Discharged yesterday · check-in",
+      dashPt2: "Discharged 3 days ago · no check-in",
+      dashPt3: "Discharged today · activation pending",
+      tabOpPatients: "Patients",
+      tabOpAlerts: "Alerts",
+      tabOpMessages: "Messages",
+      tabOpSettings: "Settings"
+    }
+  };
+
+  var lang = "it";
+
+  function applyLanguage(l) {
+    lang = l;
+    document.documentElement.lang = l === "it" ? "it" : "en";
+    var dict = STRINGS[l];
+    document.querySelectorAll("[data-i18n]").forEach(function (el) {
+      var k = el.getAttribute("data-i18n");
+      if (dict[k]) el.textContent = dict[k];
+    });
+    document.querySelectorAll("[data-i18n-placeholder]").forEach(function (el) {
+      var k = el.getAttribute("data-i18n-placeholder");
+      if (dict[k]) el.setAttribute("placeholder", dict[k]);
+    });
+    document.getElementById("btn-it").classList.toggle("active", l === "it");
+    document.getElementById("btn-en").classList.toggle("active", l === "en");
+    document.getElementById("btn-it").setAttribute("aria-pressed", l === "it");
+    document.getElementById("btn-en").setAttribute("aria-pressed", l === "en");
+    updateRoleCta();
+  }
+
+  function updateRoleCta() {
+    var sel = document.querySelector(".role-cards-a .role-card.selected");
+    var btn = document.getElementById("btn-continue-role");
+    if (!sel || !btn) return;
+    var role = sel.getAttribute("data-role");
+    var k = role === "patient" ? "continueAsPatient" : role === "caregiver" ? "continueAsCaregiver" : "continueAsHcp";
+    btn.textContent = STRINGS[lang][k];
+    btn.setAttribute("data-i18n", k);
+  }
+
+  document.getElementById("btn-it").addEventListener("click", function () { applyLanguage("it"); });
+  document.getElementById("btn-en").addEventListener("click", function () { applyLanguage("en"); });
+
+  document.querySelectorAll(".role-cards-a .role-card").forEach(function (card) {
+    card.addEventListener("click", function () {
+      document.querySelectorAll(".role-cards-a .role-card").forEach(function (c) {
+        c.classList.remove("selected");
+      });
+      card.classList.add("selected");
+      updateRoleCta();
+    });
+  });
+
+  document.querySelectorAll("#code-row-a3 .code-box input").forEach(function (inp, i, arr) {
+    inp.addEventListener("input", function () {
+      this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 2);
+      if (this.value.length >= 2 && arr[i + 1]) arr[i + 1].focus();
+    });
+    inp.addEventListener("keydown", function (e) {
+      if (e.key === "Backspace" && !this.value && arr[i - 1]) arr[i - 1].focus();
+    });
+  });
+
+  document.querySelectorAll(".screen-inner").forEach(function (inner) {
+    var scroll = inner.querySelector(".scroll-area");
+    if (!scroll) return;
+    if (!inner.querySelector(".blob-1")) {
+      var b1 = document.createElement("div");
+      b1.className = "blob blob-1";
+      b1.setAttribute("aria-hidden", "true");
+      inner.insertBefore(b1, scroll);
+    }
+    if (!inner.querySelector(".blob-2")) {
+      var b2 = document.createElement("div");
+      b2.className = "blob blob-2";
+      b2.setAttribute("aria-hidden", "true");
+      inner.insertBefore(b2, scroll);
+    }
+  });
+
+  applyLanguage("it");
+})();
+  </script>
+</body>
+</html>
+
