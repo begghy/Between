@@ -56,8 +56,8 @@ ambra `#ffb020` (solo accenti) · `--r-card 26` · `--r-btn 16` · `--r-inp 14`
 `data-row`, `feature-line`, `notif-row` (`notif-ring`), `mood-btn`,
 `tab-bar` (`tab`), `dots`/`dots--4`, `glass`, `splash-brand`/`splash-hero`/
 `splash-body`, `avatar-round`, `initials`, `op-badge`, `nav-back`,
-`verify-spinner`, `priv-line`, `cloud-hint` (`cloud-ico`, `cloud-q`),
-`success-check`.
+`verify-spinner`, `priv-line`, `cloud-hint`/`cloud-msg`, `success-check`,
+`mood-block` (`mood-reply`).
 
 ## Architettura di index.html — tre modalità nello stesso file
 - **App mode (default):** una schermata alla volta. Router JS che mostra/nasconde
@@ -76,9 +76,14 @@ il sistema. Aggiorna questa mappa ogni volta che aggiungi una schermata.
 **A — Paziente:** A1 Splash (SPID/CIE) → A2 Ruolo → A3 Attivazione codice →
 A3v Verifica **[nuova]** → A4 Piano attivo → A5 Notifiche → A6 Benvenuto →
 A7 Home — le altre **[base]**.
-Dettagli: A3 ha una `cloud-hint` cliccabile (apre/chiude "dove si trova il
-codice"); A5 ha le notifiche **tutte spente di default e cliccabili** (toggle del
-`notif-ring` al click della riga); A6 anima la spunta con `success-check`.
+Dettagli: A3 ha una `cloud-hint` **tonda** a sinistra che si apre in sé stessa
+(click sulla nuvola → mostra il messaggio al suo posto; click sul messaggio →
+richiude); A5 ha le notifiche **tutte spente di default e cliccabili** (toggle del
+`notif-ring` al click della riga) e **senza** la riga Caregiver; A6 anima la spunta
+con `success-check`. A7 (Home) è interattiva: le `med-row` farmaci fanno toggle
+"done" (nessuna pre-spuntata), gli stati d'animo (`mood-btn`) dissolvono la riga e
+mostrano un messaggio personalizzato in `mood-reply`, e tutte le voci (card, righe,
+mood, tab) hanno feedback al tocco (non navigano ancora).
 Sezioni interne via tab: Home **[base]**, Piano **[nuova]**, Messaggi **[nuova]**,
 Profilo **[nuova]**.
 **B — Caregiver:** B1 Splash → B2 Accesso → B3 Collegamento → B4 Relazione →

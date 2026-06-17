@@ -918,22 +918,17 @@
     .priv-line:nth-child(2) { animation-delay: .9s; }
     .priv-line:nth-child(3) { animation-delay: 1.6s; }
 
-    /* A3 — nuvoletta cliccabile "dove si trova il codice?" */
+    /* A3 — nuvoletta tonda cliccabile "dove si trova il codice?" */
     .cloud-hint {
-      position: relative; display: block; margin: 6px auto 16px;
-      width: 64px; height: 44px; background: none; border: none;
-      color: var(--accent); cursor: pointer;
-      animation: cloudPulse 2.2s ease-in-out infinite;
+      position: relative; display: flex; align-items: center; justify-content: center;
+      width: 40px; height: 40px; border-radius: 50%; margin: 6px 0 16px;
+      background: var(--glass); border: 1px solid var(--glass-border);
+      color: var(--accent); font-size: 18px; font-weight: 700; cursor: pointer;
+      animation: cloudPulse 2.8s ease-in-out infinite;
     }
-    .cloud-ico { width: 100%; height: 100%; }
-    .cloud-q {
-      position: absolute; top: -2px; right: 4px;
-      width: 18px; height: 18px; border-radius: 50%;
-      background: var(--accent); color: #fff;
-      font-size: 11px; font-weight: 700;
-      display: flex; align-items: center; justify-content: center;
-    }
-    @keyframes cloudPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+    @keyframes cloudPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+    .cloud-msg { animation: cloudGrow .25s ease; }
+    @keyframes cloudGrow { from { opacity: 0; transform: scale(.9); } to { opacity: 1; transform: none; } }
 
     /* A6 — spunta di benvenuto che gira e rimbalza */
     @keyframes successSpin {
@@ -944,6 +939,27 @@
       100% { transform: scale(1) rotate(360deg); }
     }
     .success-check { animation: successSpin .8s cubic-bezier(.34,1.56,.64,1) both; }
+
+    /* A7 — farmaci: il check è nascosto finché la riga non è "done" */
+    .sq-check svg { opacity: 0; transition: opacity .15s; }
+    .med-row.done .sq-check svg { opacity: 1; }
+
+    /* A7 — risposta personalizzata allo stato d'animo */
+    .mood-reply {
+      font-size: 14px; color: var(--text);
+      background: var(--glass); border: 1px solid var(--glass-border);
+      border-radius: var(--r-inp); padding: 14px 16px; line-height: 1.4;
+    }
+
+    /* A7 — tutte le voci cliccabili con feedback al tocco */
+    [data-screen="a7"] .accent-card,
+    [data-screen="a7"] .med-row,
+    [data-screen="a7"] .mood-btn,
+    [data-screen="a7"] .tab { cursor: pointer; transition: background .15s, transform .1s; }
+    [data-screen="a7"] .accent-card:active,
+    [data-screen="a7"] .med-row:active { background: rgba(255,255,255,0.13); transform: scale(.99); }
+    [data-screen="a7"] .tab:active,
+    [data-screen="a7"] .mood-btn:active { transform: scale(.95); }
   </style>
 </head>
 <body>
@@ -1050,11 +1066,8 @@
                   <div class="code-box"><input maxlength="2" placeholder="--" inputmode="text" autocapitalize="characters" autocomplete="off" spellcheck="false" aria-label="Code part 3" /></div>
                 </div>
                 <p style="font-size:12px;color:var(--muted2);text-align:center;margin:0 0 18px;" data-i18n="codeFormatHint"></p>
-                <button type="button" class="cloud-hint" id="cloud-hint-a3" aria-label="Dove si trova il codice?">
-                  <svg class="cloud-ico" viewBox="0 0 64 40" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"><path d="M18 33h28a10.5 10.5 0 002-20.8A15 15 0 0019.5 9 12 12 0 0016 33z"/></svg>
-                  <span class="cloud-q">?</span>
-                </button>
-                <div class="glass cloud-msg" id="cloud-msg-a3" style="padding:16px;margin-bottom:18px;display:none;">
+                <button type="button" class="cloud-hint" id="cloud-hint-a3" aria-label="Dove si trova il codice?">?</button>
+                <div class="glass cloud-msg" id="cloud-msg-a3" style="padding:16px;margin-bottom:18px;display:none;border-radius:22px;cursor:pointer;">
                   <p class="label-caps" style="margin-bottom:8px;" data-i18n="whereCodeTitleCaps"></p>
                   <p style="margin:0;font-size:14px;line-height:1.45;color:var(--muted);" data-i18n="whereCodeBodyLong"></p>
                 </div>
@@ -1139,7 +1152,6 @@
                 <div class="glass notif-row"><span class="ni">💬</span><div class="txt"><strong data-i18n="notifMsgTitle"></strong><small data-i18n="notifMsgSub"></small></div><span class="notif-ring"></span></div>
                 <div class="glass notif-row"><span class="ni">🏃</span><div class="txt"><strong data-i18n="notifRiabTitle"></strong><small data-i18n="notifRiabSub"></small></div><span class="notif-ring"></span></div>
                 <div class="glass notif-row"><span class="ni">🩺</span><div class="txt"><strong data-i18n="notifParamTitle"></strong><small data-i18n="notifParamSub"></small></div><span class="notif-ring"></span></div>
-                <div class="glass notif-row"><span class="ni">👥</span><div class="txt"><strong data-i18n="notifCgTitle"></strong><small data-i18n="notifCgSub"></small></div><span class="notif-ring"></span></div>
                 <div style="margin-top:22px;"><button type="button" class="btn-fill" data-i18n="enableNotifArrow"></button></div>
                 <div style="text-align:center;margin-top:12px;"><button type="button" class="link-muted" data-i18n="skipForNow"></button></div>
               </div>
@@ -1182,11 +1194,14 @@
                   <div class="avatar-round">MR</div>
                 </div>
                 <p class="section-kicker" data-i18n="howFeelingCaps"></p>
-                <div class="mood-row">
-                  <button type="button" class="mood-btn on"><span class="emoji">😌</span><span data-i18n="moodSereno"></span></button>
-                  <button type="button" class="mood-btn"><span class="emoji">😞</span><span data-i18n="moodGiu"></span></button>
-                  <button type="button" class="mood-btn"><span class="emoji">😰</span><span data-i18n="moodAnsioso"></span></button>
-                  <button type="button" class="mood-btn"><span class="emoji">😓</span><span data-i18n="moodStanco"></span></button>
+                <div class="mood-block">
+                  <div class="mood-row">
+                    <button type="button" class="mood-btn" data-msg-it="Ottimo, sono felice che la giornata stia andando bene." data-msg-en="Great — I'm glad your day is going well."><span class="emoji">😌</span><span data-i18n="moodSereno"></span></button>
+                    <button type="button" class="mood-btn" data-msg-it="Mi dispiace. Ricorda che il tuo team è qui per te." data-msg-en="I'm sorry. Remember your care team is here for you."><span class="emoji">😞</span><span data-i18n="moodGiu"></span></button>
+                    <button type="button" class="mood-btn" data-msg-it="Respira, un passo alla volta. Va bene così." data-msg-en="Breathe, one step at a time. It's okay."><span class="emoji">😰</span><span data-i18n="moodAnsioso"></span></button>
+                    <button type="button" class="mood-btn" data-msg-it="Riposati quando puoi: anche il recupero passa da lì." data-msg-en="Rest when you can — recovery needs it too."><span class="emoji">😓</span><span data-i18n="moodStanco"></span></button>
+                  </div>
+                  <div class="mood-reply" style="display:none;"></div>
                 </div>
                 <p class="section-kicker" data-i18n="nextAppointmentCaps"></p>
                 <div class="glass accent-card">
@@ -1195,8 +1210,8 @@
                   <div class="sub" data-i18n="patientAppWhere"></div>
                 </div>
                 <p class="section-kicker" data-i18n="farmaciOggiCaps"></p>
-                <div class="glass med-row done"><span class="sq-check"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></span><span data-i18n="medDonePatient"></span></div>
-                <div class="glass med-row"><span class="sq-check"></span><span data-i18n="medPendingPatient"></span></div>
+                <div class="glass med-row"><span class="sq-check"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></span><span data-i18n="medDonePatient"></span></div>
+                <div class="glass med-row"><span class="sq-check"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></span><span data-i18n="medPendingPatient"></span></div>
               </div>
               <nav class="tab-bar" aria-label="Tab">
                 <div class="tab on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10.5L12 3l9 7.5V20a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1v-9.5z"/></svg><span data-i18n="tabHome"></span></div>
@@ -1741,9 +1756,47 @@
   });
 })();
 
-/* ===== A3 — nuvoletta cliccabile "dove si trova il codice?" ===== */
-(function(){var h=document.getElementById('cloud-hint-a3'),m=document.getElementById('cloud-msg-a3');
- if(h&&m)h.addEventListener('click',function(){m.style.display=(m.style.display==='none')?'block':'none';});})();
+/* ===== A3 — nuvola tonda che si apre in sé stessa ===== */
+(function(){
+  var h=document.getElementById('cloud-hint-a3'),m=document.getElementById('cloud-msg-a3');
+  if(!h||!m)return;
+  h.addEventListener('click',function(){ h.style.display='none'; m.style.display='block'; });
+  m.addEventListener('click',function(){ m.style.display='none'; h.style.display='flex'; });
+})();
+
+/* ===== A7 — farmaci: ogni riga fa toggle dello stato "done" ===== */
+(function(){
+  var host=document.querySelector('[data-screen="a7"]');
+  if(!host)return;
+  host.querySelectorAll('.med-row').forEach(function(row){
+    row.addEventListener('click',function(){ row.classList.toggle('done'); });
+  });
+})();
+
+/* ===== A7 — stato d'animo: dissolvenza + messaggio personalizzato ===== */
+(function(){
+  var host=document.querySelector('[data-screen="a7"]');
+  if(!host)return;
+  var block=host.querySelector('.mood-block');
+  if(!block)return;
+  var row=block.querySelector('.mood-row'),reply=block.querySelector('.mood-reply');
+  if(!row||!reply)return;
+  row.querySelectorAll('.mood-btn').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      var lang=document.documentElement.lang==='en'?'en':'it';
+      reply.textContent=btn.getAttribute('data-msg-'+lang)||'';
+      row.style.transition='opacity .3s';
+      row.style.opacity='0';
+      setTimeout(function(){
+        row.style.display='none';
+        reply.style.display='block';
+        reply.style.opacity='0';
+        reply.style.transition='opacity .3s';
+        requestAnimationFrame(function(){ reply.style.opacity='1'; });
+      },300);
+    });
+  });
+})();
 
 /* ===== A5 — notifiche: ogni riga è un toggle (ring on/off) ===== */
 (function(){
