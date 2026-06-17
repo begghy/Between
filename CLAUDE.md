@@ -56,7 +56,8 @@ ambra `#ffb020` (solo accenti) · `--r-card 26` · `--r-btn 16` · `--r-inp 14`
 `data-row`, `feature-line`, `notif-row` (`notif-ring`), `mood-btn`,
 `tab-bar` (`tab`), `dots`/`dots--4`, `glass`, `splash-brand`/`splash-hero`/
 `splash-body`, `avatar-round`, `initials`, `op-badge`, `nav-back`,
-`verify-spinner`, `priv-line`.
+`verify-spinner`, `priv-line`, `cloud-hint` (`cloud-ico`, `cloud-q`),
+`success-check`.
 
 ## Architettura di index.html — tre modalità nello stesso file
 - **App mode (default):** una schermata alla volta. Router JS che mostra/nasconde
@@ -75,6 +76,9 @@ il sistema. Aggiorna questa mappa ogni volta che aggiungi una schermata.
 **A — Paziente:** A1 Splash (SPID/CIE) → A2 Ruolo → A3 Attivazione codice →
 A3v Verifica **[nuova]** → A4 Piano attivo → A5 Notifiche → A6 Benvenuto →
 A7 Home — le altre **[base]**.
+Dettagli: A3 ha una `cloud-hint` cliccabile (apre/chiude "dove si trova il
+codice"); A5 ha le notifiche **tutte spente di default e cliccabili** (toggle del
+`notif-ring` al click della riga); A6 anima la spunta con `success-check`.
 Sezioni interne via tab: Home **[base]**, Piano **[nuova]**, Messaggi **[nuova]**,
 Profilo **[nuova]**.
 **B — Caregiver:** B1 Splash → B2 Accesso → B3 Collegamento → B4 Relazione →

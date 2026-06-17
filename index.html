@@ -556,18 +556,18 @@
       display: flex;
       align-items: center;
       gap: 12px;
-      padding: 14px 16px;
+      padding: 11px 16px;
       margin-bottom: 10px;
     }
     .notif-row .ni {
-      width: 40px;
-      height: 40px;
+      width: 34px;
+      height: 34px;
       border-radius: 12px;
       background: rgba(255, 255, 255, 0.08);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 18px;
+      font-size: 16px;
     }
     .notif-row .txt { flex: 1; min-width: 0; }
     .notif-row .txt strong { display: block; font-size: 15px; margin-bottom: 2px; }
@@ -911,6 +911,39 @@
       width: 13px; height: 13px; border-radius: 50%;
       background: var(--accent); opacity: .9;
     }
+    /* A3v — le 3 righe privacy appaiono una alla volta */
+    @keyframes privFade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+    .priv-line { opacity: 0; animation: privFade .5s ease forwards; }
+    .priv-line:nth-child(1) { animation-delay: .2s; }
+    .priv-line:nth-child(2) { animation-delay: .9s; }
+    .priv-line:nth-child(3) { animation-delay: 1.6s; }
+
+    /* A3 — nuvoletta cliccabile "dove si trova il codice?" */
+    .cloud-hint {
+      position: relative; display: block; margin: 6px auto 16px;
+      width: 64px; height: 44px; background: none; border: none;
+      color: var(--accent); cursor: pointer;
+      animation: cloudPulse 2.2s ease-in-out infinite;
+    }
+    .cloud-ico { width: 100%; height: 100%; }
+    .cloud-q {
+      position: absolute; top: -2px; right: 4px;
+      width: 18px; height: 18px; border-radius: 50%;
+      background: var(--accent); color: #fff;
+      font-size: 11px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+    }
+    @keyframes cloudPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+
+    /* A6 — spunta di benvenuto che gira e rimbalza */
+    @keyframes successSpin {
+      0% { transform: scale(.3) rotate(0); opacity: 0; }
+      50% { transform: scale(1.2) rotate(360deg); opacity: 1; }
+      70% { transform: scale(.9) rotate(360deg); }
+      85% { transform: scale(1.08) rotate(360deg); }
+      100% { transform: scale(1) rotate(360deg); }
+    }
+    .success-check { animation: successSpin .8s cubic-bezier(.34,1.56,.64,1) both; }
   </style>
 </head>
 <body>
@@ -955,9 +988,6 @@
                     <span class="auth-icon" aria-hidden="true"><span class="cie-mark">CIE</span></span>
                     <span class="auth-label" data-i18n="loginCie"></span>
                   </button>
-                </div>
-                <div style="text-align:center;margin-top:18px;">
-                  <button type="button" class="link-muted" data-i18n="activationQuestion"></button>
                 </div>
               </div>
               <div class="home-indicator"></div>
@@ -1020,7 +1050,11 @@
                   <div class="code-box"><input maxlength="2" placeholder="--" inputmode="text" autocapitalize="characters" autocomplete="off" spellcheck="false" aria-label="Code part 3" /></div>
                 </div>
                 <p style="font-size:12px;color:var(--muted2);text-align:center;margin:0 0 18px;" data-i18n="codeFormatHint"></p>
-                <div class="glass" style="padding:16px;margin-bottom:18px;">
+                <button type="button" class="cloud-hint" id="cloud-hint-a3" aria-label="Dove si trova il codice?">
+                  <svg class="cloud-ico" viewBox="0 0 64 40" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"><path d="M18 33h28a10.5 10.5 0 002-20.8A15 15 0 0019.5 9 12 12 0 0016 33z"/></svg>
+                  <span class="cloud-q">?</span>
+                </button>
+                <div class="glass cloud-msg" id="cloud-msg-a3" style="padding:16px;margin-bottom:18px;display:none;">
                   <p class="label-caps" style="margin-bottom:8px;" data-i18n="whereCodeTitleCaps"></p>
                   <p style="margin:0;font-size:14px;line-height:1.45;color:var(--muted);" data-i18n="whereCodeBodyLong"></p>
                 </div>
@@ -1100,9 +1134,12 @@
                 <div class="dots" aria-hidden="true"><span></span><span></span><span></span><span class="on"></span><span></span></div>
                 <h1 class="screen-title" data-i18n="stayInformed"></h1>
                 <p class="subtitle" data-i18n="notifIntroLong"></p>
-                <div class="glass notif-row"><span class="ni">💊</span><div class="txt"><strong data-i18n="notifFarmaciTitle"></strong><small data-i18n="notifFarmaciSub"></small></div><span class="notif-ring on">✓</span></div>
-                <div class="glass notif-row"><span class="ni">📅</span><div class="txt"><strong data-i18n="notifAppTitle"></strong><small data-i18n="notifAppSub"></small></div><span class="notif-ring on">✓</span></div>
+                <div class="glass notif-row"><span class="ni">💊</span><div class="txt"><strong data-i18n="notifFarmaciTitle"></strong><small data-i18n="notifFarmaciSub"></small></div><span class="notif-ring"></span></div>
+                <div class="glass notif-row"><span class="ni">📅</span><div class="txt"><strong data-i18n="notifAppTitle"></strong><small data-i18n="notifAppSub"></small></div><span class="notif-ring"></span></div>
                 <div class="glass notif-row"><span class="ni">💬</span><div class="txt"><strong data-i18n="notifMsgTitle"></strong><small data-i18n="notifMsgSub"></small></div><span class="notif-ring"></span></div>
+                <div class="glass notif-row"><span class="ni">🏃</span><div class="txt"><strong data-i18n="notifRiabTitle"></strong><small data-i18n="notifRiabSub"></small></div><span class="notif-ring"></span></div>
+                <div class="glass notif-row"><span class="ni">🩺</span><div class="txt"><strong data-i18n="notifParamTitle"></strong><small data-i18n="notifParamSub"></small></div><span class="notif-ring"></span></div>
+                <div class="glass notif-row"><span class="ni">👥</span><div class="txt"><strong data-i18n="notifCgTitle"></strong><small data-i18n="notifCgSub"></small></div><span class="notif-ring"></span></div>
                 <div style="margin-top:22px;"><button type="button" class="btn-fill" data-i18n="enableNotifArrow"></button></div>
                 <div style="text-align:center;margin-top:12px;"><button type="button" class="link-muted" data-i18n="skipForNow"></button></div>
               </div>
@@ -1119,7 +1156,7 @@
               <div class="screen-bg"></div>
               <header class="status-bar"><span>9:41</span><div class="sb-right"><svg class="sb-ico" width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5.5" width="3" height="6.5" rx="1"/><rect x="10" y="3" width="3" height="9" rx="1"/><rect x="15" y="0.5" width="3" height="11.5" rx="1"/></svg><svg class="sb-ico" width="16" height="12" viewBox="0 0 16 12" fill="currentColor"><path d="M8 2.3c2.4 0 4.6.9 6.3 2.6l-1.5 1.5A6.7 6.7 0 008 4.4 6.7 6.7 0 003.2 6.4L1.7 4.9A9 9 0 018 2.3zm0 3.8a5 5 0 013.5 1.5L10 9.1A2.9 2.9 0 008 8.3c-.8 0-1.5.3-2 .8L4.5 7.6A5 5 0 018 6.1zm0 3.5l1.6 1.6L8 12.6 6.4 11 8 9.6z"/></svg><svg class="sb-batt" width="27" height="13" viewBox="0 0 27 13"><rect x="0.5" y="0.5" width="22" height="12" rx="3" fill="none" stroke="currentColor" stroke-opacity="0.5"/><rect x="2" y="2" width="18" height="9" rx="1.5" fill="currentColor"/><rect x="24" y="4" width="2" height="5" rx="1" fill="currentColor" opacity="0.5"/></svg></div></header>
               <div class="scroll-area" style="display:flex;flex-direction:column;justify-content:center;min-height:100%;">
-                <div style="display:flex;justify-content:center;margin-bottom:24px;"><div class="avatar-round" style="width:72px;height:72px;font-size:34px;">✓</div></div>
+                <div style="display:flex;justify-content:center;margin-bottom:24px;"><div class="avatar-round success-check" style="width:72px;height:72px;font-size:34px;">✓</div></div>
                 <h1 class="screen-title" data-i18n="welcomeTitle" style="text-align:center;margin-bottom:14px;"></h1>
                 <p class="subtitle" data-i18n="welcomeBody" style="text-align:center;max-width:290px;margin:0 auto 28px;"></p>
                 <button type="button" class="btn-fill btn-fill-blue" data-i18n="welcomeCta"></button>
@@ -1626,7 +1663,7 @@
     if (screen === "a3v") {
       setTimeout(function () {
         if (currentScreen() === "a3v") nav("a4");
-      }, 2500);
+      }, 3200);
     }
   }
 
@@ -1701,6 +1738,24 @@
     b.addEventListener('click', goBack);
     inner.appendChild(b);
     pkg.classList.add('has-back');
+  });
+})();
+
+/* ===== A3 — nuvoletta cliccabile "dove si trova il codice?" ===== */
+(function(){var h=document.getElementById('cloud-hint-a3'),m=document.getElementById('cloud-msg-a3');
+ if(h&&m)h.addEventListener('click',function(){m.style.display=(m.style.display==='none')?'block':'none';});})();
+
+/* ===== A5 — notifiche: ogni riga è un toggle (ring on/off) ===== */
+(function(){
+  var host=document.querySelector('[data-screen="a5"]');
+  if(!host)return;
+  host.querySelectorAll('.notif-row').forEach(function(row){
+    var ring=row.querySelector('.notif-ring');
+    if(!ring)return;
+    row.addEventListener('click',function(){
+      var on=ring.classList.toggle('on');
+      ring.textContent=on?'✓':'';
+    });
   });
 })();
 
@@ -1828,6 +1883,12 @@
       notifAppSub: "24h prima della visita",
       notifMsgTitle: "Messaggi ULSS",
       notifMsgSub: "Comunicazioni dal team",
+      notifRiabTitle: "Riabilitazione",
+      notifRiabSub: "Promemoria esercizi di fisioterapia",
+      notifParamTitle: "Parametri",
+      notifParamSub: "Ricorda di misurare la pressione",
+      notifCgTitle: "Caregiver",
+      notifCgSub: "Aggiornamenti condivisi con il caregiver",
       enableNotifArrow: "Abilita notifiche →",
       skipForNow: "Salta per ora",
       welcomeTitle: "Sei pronto, Mario.",
@@ -2011,6 +2072,12 @@
       notifAppSub: "24h before the visit",
       notifMsgTitle: "ULSS messages",
       notifMsgSub: "Communication from the team",
+      notifRiabTitle: "Rehabilitation",
+      notifRiabSub: "Physiotherapy exercise reminders",
+      notifParamTitle: "Vitals",
+      notifParamSub: "Reminder to measure blood pressure",
+      notifCgTitle: "Caregiver",
+      notifCgSub: "Updates shared with your caregiver",
       enableNotifArrow: "Enable notifications →",
       skipForNow: "Skip for now",
       welcomeTitle: "You're ready, Mario.",
