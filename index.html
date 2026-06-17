@@ -865,11 +865,6 @@
       overflow: auto;
       padding: 16px;
     }
-    /* scala il telefono per stare nello schermo (app mode) */
-    body.mode-app .screen-package.active .iphone-frame {
-      transform: scale(var(--app-scale, 1));
-      transform-origin: center center;
-    }
 
     /* FIX 1 — scrollbar nascosta ovunque (scroll mantenuto) */
     .scroll-area,
@@ -1707,17 +1702,6 @@
     inner.appendChild(b);
     pkg.classList.add('has-back');
   });
-})();
-
-/* ===== Scala il telefono per stare nello schermo (app mode) ===== */
-(function () {
-  function fit() {
-    var s = Math.min((window.innerWidth - 32) / 390, (window.innerHeight - 24) / 844, 1);
-    document.documentElement.style.setProperty('--app-scale', s);
-  }
-  window.addEventListener('resize', fit);
-  window.addEventListener('load', fit);
-  fit();
 })();
 
 /* ===== DEV ONLY: dev navigator "SEZIONE" A/B/C/ALL — rimuovere nel finale ===== */
