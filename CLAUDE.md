@@ -55,7 +55,8 @@ ambra `#ffb020` (solo accenti) · `--r-card 26` · `--r-btn 16` · `--r-inp 14`
 `auth-label`), `role-card` (`role-check`, `role-avatar`), `code-box`,
 `data-row`, `feature-line`, `notif-row` (`notif-ring`), `mood-btn`,
 `tab-bar` (`tab`), `dots`/`dots--4`, `glass`, `splash-brand`/`splash-hero`/
-`splash-body`, `avatar-round`, `initials`, `op-badge`, `nav-back`.
+`splash-body`, `avatar-round`, `initials`, `op-badge`, `nav-back`,
+`verify-spinner`, `priv-line`.
 
 ## Architettura di index.html — tre modalità nello stesso file
 - **App mode (default):** una schermata alla volta. Router JS che mostra/nasconde
@@ -72,7 +73,8 @@ Legenda: **[base]** = già nello storyboard · **[nuova]** = da progettare segue
 il sistema. Aggiorna questa mappa ogni volta che aggiungi una schermata.
 
 **A — Paziente:** A1 Splash (SPID/CIE) → A2 Ruolo → A3 Attivazione codice →
-A4 Piano attivo → A5 Notifiche → A6 Benvenuto → A7 Home — tutte **[base]**.
+A3v Verifica **[nuova]** → A4 Piano attivo → A5 Notifiche → A6 Benvenuto →
+A7 Home — le altre **[base]**.
 Sezioni interne via tab: Home **[base]**, Piano **[nuova]**, Messaggi **[nuova]**,
 Profilo **[nuova]**.
 **B — Caregiver:** B1 Splash → B2 Accesso → B3 Collegamento → B4 Relazione →
@@ -94,7 +96,9 @@ Lo storyboard è la base; aspettati di aggiungere. Quando crei qualcosa di nuovo
   vengono avvolte da tab bar e navigazione.
 - **Registra** ogni schermata nuova nella mappa qui sopra e nel backlog.
 - **Retro-compatibilità.** `?section=a|b|c` e il dev navigator devono continuare
-  a funzionare anche dopo le aggiunte.
+  a funzionare anche dopo le aggiunte. Il dev navigator "SEZIONE" A/B/C/ALL ora è
+  nascosto di default e si attiva solo con `?dev=1`: di default l'app è
+  un'esperienza unica e continua.
 
 ## Ordine di build
 1. Motore di navigazione + flusso **Paziente** cliccabile end-to-end (A1→A7).

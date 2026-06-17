@@ -887,6 +887,28 @@
     body.mode-app .screen-package[data-screen="c3"] .scroll-area,
     body.mode-app .screen-package[data-screen="c4"] .scroll-area,
     body.mode-app .screen-package[data-screen="c5"] .scroll-area { padding-top: 44px; }
+
+    /* ogni schermata con freccia "Indietro" riserva spazio in alto:
+       il contenuto parte sotto il pulsante, mai sovrapposto */
+    body.mode-app .screen-package.has-back .scroll-area { padding-top: 50px; }
+
+    /* A3v — schermata di verifica (spinner + righe privacy) */
+    .verify-spinner {
+      width: 54px; height: 54px; border-radius: 50%;
+      border: 3px solid rgba(255,255,255,.15);
+      border-top-color: var(--accent);
+      animation: verifySpin .9s linear infinite;
+    }
+    @keyframes verifySpin { to { transform: rotate(360deg); } }
+    .priv-line {
+      font-size: 13px; color: var(--muted); line-height: 1.5;
+      margin: 0 0 8px; padding-left: 22px; position: relative;
+    }
+    .priv-line::before {
+      content: ""; position: absolute; left: 0; top: 4px;
+      width: 13px; height: 13px; border-radius: 50%;
+      background: var(--accent); opacity: .9;
+    }
   </style>
 </head>
 <body>
@@ -991,9 +1013,9 @@
                 <p class="subtitle" data-i18n="activateBodyPatient"></p>
                 <p class="label-caps" data-i18n="activationCodeLabel"></p>
                 <div class="code-row" id="code-row-a3">
-                  <div class="code-box"><input maxlength="2" value="B4" aria-label="Code part 1" /></div>
-                  <div class="code-box"><input maxlength="2" value="7K" aria-label="Code part 2" /></div>
-                  <div class="code-box"><input maxlength="2" placeholder="--" aria-label="Code part 3" /></div>
+                  <div class="code-box"><input maxlength="2" placeholder="--" inputmode="text" autocapitalize="characters" autocomplete="off" spellcheck="false" aria-label="Code part 1" /></div>
+                  <div class="code-box"><input maxlength="2" placeholder="--" inputmode="text" autocapitalize="characters" autocomplete="off" spellcheck="false" aria-label="Code part 2" /></div>
+                  <div class="code-box"><input maxlength="2" placeholder="--" inputmode="text" autocapitalize="characters" autocomplete="off" spellcheck="false" aria-label="Code part 3" /></div>
                 </div>
                 <p style="font-size:12px;color:var(--muted2);text-align:center;margin:0 0 18px;" data-i18n="codeFormatHint"></p>
                 <div class="glass" style="padding:16px;margin-bottom:18px;">
@@ -1009,6 +1031,26 @@
             </div>
           </div>
           <span class="frame-caption">A3 — Attivazione</span>
+        </div>
+
+        <!-- A3v VERIFICA -->
+        <div class="screen-package" data-screen="a3v">
+          <div class="iphone-frame"><div class="screen-inner">
+            <div class="screen-bg"></div>
+            <header class="status-bar"><span>9:41</span><div class="sb-right"><span class="signal-dots">●●●●</span><span>△</span><span class="battery"><i></i></span><span>100%</span></div></header>
+            <div class="scroll-area" style="display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;min-height:100%;">
+              <div class="verify-spinner" aria-hidden="true"></div>
+              <h1 class="screen-title" data-i18n="verifyingTitle" style="margin-top:24px;"></h1>
+              <p class="subtitle" data-i18n="verifyingBody"></p>
+              <div class="glass" style="padding:16px;margin-top:8px;text-align:left;width:100%;">
+                <p class="priv-line" data-i18n="privEncrypted"></p>
+                <p class="priv-line" data-i18n="privFSE"></p>
+                <p class="priv-line" data-i18n="privConsent" style="margin-bottom:0;"></p>
+              </div>
+            </div>
+            <div class="home-indicator"></div>
+          </div></div>
+          <span class="frame-caption">A3v — Verifica</span>
         </div>
 
         <!-- A4 PIANO -->
@@ -1554,7 +1596,7 @@
   document.body.classList.add("mode-app");
 
   var SCREENS = [
-    "a1", "a2", "a3", "a4", "a5", "a6", "a7",
+    "a1", "a2", "a3", "a3v", "a4", "a5", "a6", "a7",
     "b1", "b2", "b3", "b4", "b5", "b6",
     "c1", "c2", "c3", "c4", "c5", "c6"
   ];
@@ -1578,6 +1620,12 @@
         if (sc) sc.scrollTop = 0;
       }
     });
+    // A3v è una schermata di caricamento: dopo la verifica prosegue da sola ad A4
+    if (screen === "a3v") {
+      setTimeout(function () {
+        if (currentScreen() === "a3v") nav("a4");
+      }, 2500);
+    }
   }
 
   function nav(to) {
@@ -1624,14 +1672,14 @@
   }
 
   // A3 → A4 · A4 → A5 · A5 → A6 (abilita o salta) · A6 → A7
-  wire("a3", '[data-i18n="verifyCodeArrow"]', "a4");
+  wire("a3", '[data-i18n="verifyCodeArrow"]', "a3v");
   wire("a4", '[data-i18n="enterBetween"]', "a5");
   wire("a5", '[data-i18n="enableNotifArrow"]', "a6");
   wire("a5", '[data-i18n="skipForNow"]', "a6");
   wire("a6", '[data-i18n="welcomeCta"]', "a7");
 
   // ---- Pulsante "Indietro" (app mode) ----
-  var NO_BACK = ['a1','a7','b1','b6','c1','c6']; // splash + home/dashboard: niente indietro
+  var NO_BACK = ['a1','a3v','a7','b1','b6','c1','c6']; // splash + verifica + home/dashboard: niente indietro
   var PREV = { a2:'a1',a3:'a2',a4:'a3',a5:'a4',a6:'a5',
                b2:'b1',b3:'b2',b4:'b3',b5:'b4',
                c2:'c1',c3:'c2',c4:'c3',c5:'c4' };
@@ -1650,11 +1698,15 @@
     b.innerHTML = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>';
     b.addEventListener('click', goBack);
     inner.appendChild(b);
+    pkg.classList.add('has-back');
   });
 })();
 
 /* ===== DEV ONLY: dev navigator "SEZIONE" A/B/C/ALL — rimuovere nel finale ===== */
 (function () {
+  // App unica di default: il navigator di sviluppo appare solo con ?dev=1
+  if (new URLSearchParams(window.location.search).get('dev') !== '1') return;
+
   var navParams = new URLSearchParams(window.location.search);
   var currentSection = navParams.get("section");
   var activeKey = currentSection ? currentSection.toLowerCase() : "all";
@@ -1744,6 +1796,11 @@
       whereCodeBodyLong: "Nella lettera di dimissione cartacea oppure nell'SMS inviato dall'ULSS al tuo numero di telefono registrato.",
       verifyCodeArrow: "Verifica codice →",
       noCode: "Non ho un codice",
+      verifyingTitle: "Verifica in corso",
+      verifyingBody: "Stiamo verificando il tuo codice univoco…",
+      privEncrypted: "Connessione cifrata end-to-end",
+      privFSE: "I tuoi dati restano nel tuo Fascicolo Sanitario Elettronico",
+      privConsent: "Nessuna informazione è condivisa senza il tuo consenso",
       planActive: "Il tuo piano è attivo.",
       connectedFse: "Collegato a FSE Km Zero",
       labelPatientRow: "Paziente",
@@ -1922,6 +1979,11 @@
       whereCodeBodyLong: "In your paper discharge letter or in the SMS sent by ULSS to your registered phone number.",
       verifyCodeArrow: "Verify code →",
       noCode: "I don't have a code",
+      verifyingTitle: "Verifying",
+      verifyingBody: "We're verifying your unique code…",
+      privEncrypted: "End-to-end encrypted connection",
+      privFSE: "Your data stays in your Electronic Health Record",
+      privConsent: "No information is shared without your consent",
       planActive: "Your plan is active.",
       connectedFse: "Connected to FSE Km Zero",
       labelPatientRow: "Patient",
