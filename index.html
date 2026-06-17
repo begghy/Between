@@ -863,6 +863,30 @@
       overflow: auto;
       padding: 16px;
     }
+
+    /* FIX 1 — scrollbar nascosta ovunque (scroll mantenuto) */
+    .scroll-area,
+    body.mode-app .screen-package.active { scrollbar-width: none; -ms-overflow-style: none; }
+    .scroll-area::-webkit-scrollbar,
+    body.mode-app .screen-package.active::-webkit-scrollbar { width: 0; height: 0; }
+
+    /* FIX 2 — pulsante "Indietro" (app mode) */
+    .nav-back {
+      position: absolute; top: 58px; left: 16px;
+      width: 38px; height: 38px; border-radius: 50%;
+      display: none; align-items: center; justify-content: center;
+      background: var(--glass); border: 1px solid var(--glass-border);
+      color: var(--text); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+      cursor: pointer; padding: 0; z-index: 30; transition: background .2s, transform .1s;
+    }
+    body.mode-app .screen-package.active .nav-back { display: flex; }
+    .nav-back:active { transform: scale(0.92); background: rgba(255,255,255,0.16); }
+    /* solo dove il contenuto in alto è allineato a sinistra (schermate Operatore):
+       evita la sovrapposizione col pulsante "Indietro" — non sposta altro */
+    body.mode-app .screen-package[data-screen="c2"] .scroll-area,
+    body.mode-app .screen-package[data-screen="c3"] .scroll-area,
+    body.mode-app .screen-package[data-screen="c4"] .scroll-area,
+    body.mode-app .screen-package[data-screen="c5"] .scroll-area { padding-top: 44px; }
   </style>
 </head>
 <body>
@@ -1605,6 +1629,28 @@
   wire("a5", '[data-i18n="enableNotifArrow"]', "a6");
   wire("a5", '[data-i18n="skipForNow"]', "a6");
   wire("a6", '[data-i18n="welcomeCta"]', "a7");
+
+  // ---- Pulsante "Indietro" (app mode) ----
+  var NO_BACK = ['a1','a7','b1','b6','c1','c6']; // splash + home/dashboard: niente indietro
+  var PREV = { a2:'a1',a3:'a2',a4:'a3',a5:'a4',a6:'a5',
+               b2:'b1',b3:'b2',b4:'b3',b5:'b4',
+               c2:'c1',c3:'c2',c4:'c3',c5:'c4' };
+  function goBack(){
+    if (window.history.length > 1) window.history.back();
+    else { var p = PREV[currentScreen()]; nav(p || DEFAULT_SCREEN); }
+  }
+  document.querySelectorAll('[data-screen]').forEach(function(pkg){
+    var id = pkg.getAttribute('data-screen');
+    if (NO_BACK.indexOf(id) !== -1) return;
+    var inner = pkg.querySelector('.screen-inner');
+    if (!inner || inner.querySelector('.nav-back')) return;
+    var b = document.createElement('button');
+    b.type = 'button'; b.className = 'nav-back';
+    b.setAttribute('aria-label','Indietro'); // testo non visibile: statico va bene
+    b.innerHTML = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>';
+    b.addEventListener('click', goBack);
+    inner.appendChild(b);
+  });
 })();
 
 /* ===== DEV ONLY: dev navigator "SEZIONE" A/B/C/ALL — rimuovere nel finale ===== */

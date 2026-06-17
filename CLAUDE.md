@@ -55,7 +55,7 @@ ambra `#ffb020` (solo accenti) · `--r-card 26` · `--r-btn 16` · `--r-inp 14`
 `auth-label`), `role-card` (`role-check`, `role-avatar`), `code-box`,
 `data-row`, `feature-line`, `notif-row` (`notif-ring`), `mood-btn`,
 `tab-bar` (`tab`), `dots`/`dots--4`, `glass`, `splash-brand`/`splash-hero`/
-`splash-body`, `avatar-round`, `initials`, `op-badge`.
+`splash-body`, `avatar-round`, `initials`, `op-badge`, `nav-back`.
 
 ## Architettura di index.html — tre modalità nello stesso file
 - **App mode (default):** una schermata alla volta. Router JS che mostra/nasconde
