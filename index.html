@@ -866,6 +866,17 @@
       padding: 16px;
     }
 
+    @keyframes screenIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: none; }
+    }
+    body.mode-app .screen-package.active .iphone-frame {
+      animation: screenIn .34s cubic-bezier(.22,.61,.36,1) both;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      body.mode-app .screen-package.active .iphone-frame { animation: none; }
+    }
+
     /* FIX 1 — scrollbar nascosta ovunque (scroll mantenuto) */
     .scroll-area,
     body.mode-app .screen-package.active { scrollbar-width: none; -ms-overflow-style: none; }

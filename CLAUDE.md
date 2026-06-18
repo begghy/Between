@@ -62,7 +62,9 @@ ambra `#ffb020` (solo accenti) · `--r-card 26` · `--r-btn 16` · `--r-inp 14`
 ## Architettura di index.html — tre modalità nello stesso file
 - **App mode (default):** una schermata alla volta. Router JS che mostra/nasconde
   le schermate, **deeplink via hash** (`#a1`, `#a2`, … `#c6`), tasto **back** del
-  browser funzionante. Elementi cliccabili cablati al flusso.
+  browser funzionante. Elementi cliccabili cablati al flusso. In app mode ogni
+  schermata entra con l'animazione `screenIn` (fade + leggero rise) applicata
+  all'`iphone-frame` della schermata attiva, rispettando `prefers-reduced-motion`.
 - **Import mode:** `?section=a|b|c` preservato — nasconde le altre sezioni per
   l'export html.to.design (stesso comportamento dello storyboard).
 - **Dev navigator:** il toggle "SEZIONE" A/B/C/ALL resta visibile **ora** per lo
