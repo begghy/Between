@@ -524,6 +524,9 @@
       text-align: center;
       outline: none;
     }
+    .btn-fill:disabled { opacity:.45; cursor:not-allowed; }
+    @keyframes codeShake { 0%,100%{transform:translateX(0);} 20%,60%{transform:translateX(-6px);} 40%,80%{transform:translateX(6px);} }
+    .code-row.shake { animation: codeShake .4s ease; }
 
     .data-row {
       display: flex;
@@ -867,11 +870,11 @@
     }
 
     @keyframes screenIn {
-      from { opacity: 0; transform: translateY(12px); }
+      from { opacity: 0; transform: scale(0.992); }
       to   { opacity: 1; transform: none; }
     }
     body.mode-app .screen-package.active .iphone-frame {
-      animation: screenIn .42s cubic-bezier(0, 0, 0.58, 1) both;
+      animation: screenIn .5s cubic-bezier(0, 0, 0.58, 1) both;
     }
     @media (prefers-reduced-motion: reduce) {
       body.mode-app .screen-package.active .iphone-frame { animation: none; }
@@ -1737,7 +1740,26 @@
   }
 
   // A3 → A4 · A4 → A5 · A5 → A6 (abilita o salta) · A6 → A7
-  wire("a3", '[data-i18n="verifyCodeArrow"]', "a3v");
+  (function(){
+    var a3 = document.querySelector('[data-screen="a3"]');
+    if(!a3) return;
+    var vbtn = a3.querySelector('[data-i18n="verifyCodeArrow"]');
+    var cins = a3.querySelectorAll('#code-row-a3 .code-box input');
+    if(!vbtn || cins.length===0) return;
+    function complete(){ var ok = cins.length===3; cins.forEach(function(i){ if(i.value.trim().length<2) ok=false; }); return ok; }
+    function sync(){ vbtn.disabled = !complete(); }
+    cins.forEach(function(i){ i.addEventListener('input', sync); });
+    sync();
+    vbtn.addEventListener('click', function(e){
+      if(!complete()){
+        e.preventDefault();
+        var row = document.getElementById('code-row-a3');
+        if(row){ row.classList.remove('shake'); void row.offsetWidth; row.classList.add('shake'); }
+        return;
+      }
+      nav('a3v');
+    });
+  })();
   wire("a4", '[data-i18n="enterBetween"]', "a5");
   wire("a5", '[data-i18n="enableNotifArrow"]', "a6");
   wire("a5", '[data-i18n="skipForNow"]', "a6");

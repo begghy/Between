@@ -63,8 +63,9 @@ ambra `#ffb020` (solo accenti) · `--r-card 26` · `--r-btn 16` · `--r-inp 14`
 - **App mode (default):** una schermata alla volta. Router JS che mostra/nasconde
   le schermate, **deeplink via hash** (`#a1`, `#a2`, … `#c6`), tasto **back** del
   browser funzionante. Elementi cliccabili cablati al flusso. In app mode ogni
-  schermata entra con l'animazione `screenIn` (fade + leggero rise) applicata
-  all'`iphone-frame` della schermata attiva, rispettando `prefers-reduced-motion`.
+  schermata entra con l'animazione `screenIn` (fade morbido, senza translate —
+  micro-scale 0.992→1) applicata all'`iphone-frame` della schermata attiva,
+  rispettando `prefers-reduced-motion`.
 - **Import mode:** `?section=a|b|c` preservato — nasconde le altre sezioni per
   l'export html.to.design (stesso comportamento dello storyboard).
 - **Dev navigator:** il toggle "SEZIONE" A/B/C/ALL resta visibile **ora** per lo
@@ -80,7 +81,10 @@ A3v Verifica **[nuova]** → A4 Piano attivo → A5 Notifiche → A6 Benvenuto �
 A7 Home — le altre **[base]**.
 Dettagli: A3 ha una `cloud-hint` **tonda** a sinistra che si apre in sé stessa
 (click sulla nuvola → mostra il messaggio al suo posto; click sul messaggio →
-richiude); A5 ha le notifiche **tutte spente di default e cliccabili** (toggle del
+richiude). A3 richiede il **codice completo** (6 caratteri = tutti e 3 i campi
+da 2) per proseguire: il bottone `verifyCodeArrow` resta `disabled` finché il
+codice non è completo e, se cliccato incompleto, la `code-row` fa uno **shake**
+(`codeShake`). A5 ha le notifiche **tutte spente di default e cliccabili** (toggle del
 `notif-ring` al click della riga) e **senza** la riga Caregiver; A6 anima la spunta
 con `success-check`. A7 (Home) è interattiva: le `med-row` farmaci fanno toggle
 "done" (nessuna pre-spuntata), gli stati d'animo (`mood-btn`) dissolvono la riga e
