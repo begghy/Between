@@ -86,7 +86,10 @@ da 2) per proseguire: il bottone `verifyCodeArrow` resta `disabled` finché il
 codice non è completo e, se cliccato incompleto, la `code-row` fa uno **shake**
 (`codeShake`). A5 ha le notifiche **tutte spente di default e cliccabili** (toggle del
 `notif-ring` al click della riga) e **senza** la riga Caregiver; A6 anima la spunta
-con `success-check`. A7 (Home) è interattiva: le `med-row` farmaci fanno toggle
+con `success-check`. A7 (Home) mostra una **lista di più appuntamenti** in
+`accent-card` (il primo invariato — `patientApp*` — seguito da `app2*`/`app3*`/
+`app4*`); il kicker è al plurale (`nextAppointmentCaps` = "PROSSIMI APPUNTAMENTI").
+A7 (Home) è interattiva: le `med-row` farmaci fanno toggle
 "done" (nessuna pre-spuntata), gli stati d'animo (`mood-btn`) dissolvono la riga e
 mostrano un messaggio personalizzato in `mood-reply`, e tutte le voci (card, righe,
 mood, tab) hanno feedback al tocco (non navigano ancora).
