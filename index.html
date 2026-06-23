@@ -976,6 +976,49 @@
     [data-screen="a7"] .med-row:active { background: rgba(255,255,255,0.13); transform: scale(.99); }
     [data-screen="a7"] .tab:active,
     [data-screen="a7"] .mood-btn:active { transform: scale(.95); }
+
+    /* A1 — pannello SPID a tendina (accordion) sotto il bottone "Entra con SPID" */
+    .spid-group { display: flex; flex-direction: column; }
+    .spid-caret {
+      margin-left: auto; margin-right: 16px;
+      display: inline-flex; align-items: center;
+      opacity: 0;
+      transition: transform .35s ease, opacity .35s ease;
+    }
+    .auth-btn-spid[aria-expanded="true"] .spid-caret { opacity: 1; transform: rotate(180deg); }
+    .spid-accordion {
+      max-height: 0; overflow: hidden; opacity: 0;
+      transition: max-height .35s ease, opacity .35s ease, margin-top .35s ease;
+    }
+    .spid-accordion.open { max-height: 220px; opacity: 1; margin-top: 10px; }
+    @media (prefers-reduced-motion: reduce) {
+      .spid-accordion { transition: opacity .2s ease; }
+      .spid-caret { transition: opacity .2s ease; }
+      .auth-btn-spid[aria-expanded="true"] .spid-caret { transform: none; }
+    }
+    .spid-idp {
+      display: flex; align-items: center; gap: 12px;
+      width: 100%; padding: 14px 16px;
+      border-radius: var(--r-card);
+      border: 1px solid var(--glass-border);
+      background: var(--glass);
+      -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px);
+      cursor: pointer; text-align: left; font: inherit; color: inherit;
+      transition: border-color .2s, background .2s, transform .1s;
+    }
+    .spid-idp:active {
+      transform: scale(.99);
+      border-color: rgba(74,127,212,.65); background: rgba(74,127,212,.1);
+    }
+    .spid-idp img { height: 26px; width: auto; display: block; }
+    .spid-idp .spid-chev { margin-left: auto; color: var(--muted2); display: flex; align-items: center; }
+
+    /* A1-SPID-OK — schermata di accesso riuscito: riga "identità verificata" */
+    .spid-verified-row {
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      font-size: 13px; color: var(--muted);
+    }
+    .spid-verified-row img { height: 20px; width: auto; display: block; }
   </style>
 </head>
 <body>
@@ -1012,10 +1055,19 @@
                 <p class="splash-hero" data-i18n="splashHeadline"></p>
                 <p class="splash-body" data-i18n="splashBody"></p>
                 <div class="stack-gap" style="margin-top: 8px;">
-                  <button type="button" class="auth-btn auth-btn-spid" aria-label="Login with SPID">
-                    <span class="auth-icon" aria-hidden="true"><span class="spid-mark">SPID</span></span>
-                    <span class="auth-label" data-i18n="loginSpid"></span>
-                  </button>
+                  <div class="spid-group">
+                    <button type="button" class="auth-btn auth-btn-spid" aria-label="Login with SPID" aria-expanded="false" aria-controls="spid-accordion">
+                      <span class="auth-icon" aria-hidden="true"><span class="spid-mark">SPID</span></span>
+                      <span class="auth-label" data-i18n="loginSpid"></span>
+                      <span class="spid-caret" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></span>
+                    </button>
+                    <div class="spid-accordion" id="spid-accordion">
+                      <button type="button" class="spid-idp" aria-label="Namirial ID">
+                        <img src="assets/spid-idp-namirialid.svg" alt="Namirial ID">
+                        <span class="spid-chev" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"></polyline></svg></span>
+                      </button>
+                    </div>
+                  </div>
                   <button type="button" class="auth-btn auth-btn-cie" aria-label="Login with CIE">
                     <span class="auth-icon" aria-hidden="true"><span class="cie-mark">CIE</span></span>
                     <span class="auth-label" data-i18n="loginCie"></span>
@@ -1026,6 +1078,25 @@
             </div>
           </div>
           <span class="frame-caption">A1 — Splash</span>
+        </div>
+
+        <!-- A1-SPID-OK — ACCESSO SPID RIUSCITO (fake, prosegue da solo verso A2) -->
+        <div class="screen-package" data-screen="a1-spid-ok">
+          <div class="iphone-frame"><div class="screen-inner">
+            <div class="screen-bg"></div>
+            <header class="status-bar"><span>9:41</span><div class="sb-right"><svg class="sb-ico" width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5.5" width="3" height="6.5" rx="1"/><rect x="10" y="3" width="3" height="9" rx="1"/><rect x="15" y="0.5" width="3" height="11.5" rx="1"/></svg><svg class="sb-ico" width="16" height="12" viewBox="0 0 16 12" fill="currentColor"><path d="M8 2.3c2.4 0 4.6.9 6.3 2.6l-1.5 1.5A6.7 6.7 0 008 4.4 6.7 6.7 0 003.2 6.4L1.7 4.9A9 9 0 018 2.3zm0 3.8a5 5 0 013.5 1.5L10 9.1A2.9 2.9 0 008 8.3c-.8 0-1.5.3-2 .8L4.5 7.6A5 5 0 018 6.1zm0 3.5l1.6 1.6L8 12.6 6.4 11 8 9.6z"/></svg><svg class="sb-batt" width="27" height="13" viewBox="0 0 27 13"><rect x="0.5" y="0.5" width="22" height="12" rx="3" fill="none" stroke="currentColor" stroke-opacity="0.5"/><rect x="2" y="2" width="18" height="9" rx="1.5" fill="currentColor"/><rect x="24" y="4" width="2" height="5" rx="1" fill="currentColor" opacity="0.5"/></svg></div></header>
+            <div class="scroll-area" style="display:flex;flex-direction:column;justify-content:center;min-height:100%;">
+              <div style="display:flex;justify-content:center;margin-bottom:24px;"><div class="avatar-round success-check" style="width:72px;height:72px;font-size:34px;">✓</div></div>
+              <h1 class="screen-title" data-i18n="spidLoginSuccess" style="text-align:center;margin-bottom:14px;"></h1>
+              <p class="subtitle" data-i18n="spidLoginSuccessBody" style="text-align:center;max-width:300px;margin:0 auto 22px;"></p>
+              <div class="spid-verified-row">
+                <img src="assets/spid-idp-namirialid.svg" alt="Namirial ID">
+                <span data-i18n="spidIdentityVerified"></span>
+              </div>
+            </div>
+            <div class="home-indicator"></div>
+          </div></div>
+          <span class="frame-caption">A1-SPID-OK — Accesso eseguito</span>
         </div>
 
         <!-- A2 RUOLO -->
@@ -1669,7 +1740,7 @@
   document.body.classList.add("mode-app");
 
   var SCREENS = [
-    "a1", "a2", "a3", "a3v", "a4", "a5", "a6", "a7",
+    "a1", "a1-spid-ok", "a2", "a3", "a3-nocode", "a3v", "a4", "a5", "a6", "a7",
     "b1", "b2", "b3", "b4", "b5", "b6",
     "c1", "c2", "c3", "c4", "c5", "c6"
   ];
@@ -1685,6 +1756,17 @@
 
   function render() {
     var screen = currentScreen();
+    // Protezione: se il markup della schermata non esiste ancora (una schermata
+    // di flusso non costruita), evita lo schermo nero tornando al DEFAULT_SCREEN.
+    if (screen !== DEFAULT_SCREEN && !document.querySelector('[data-screen="' + screen + '"]')) {
+      if (window.history.replaceState) {
+        window.history.replaceState(null, "", "#" + DEFAULT_SCREEN);
+      } else {
+        window.location.hash = DEFAULT_SCREEN;
+      }
+      render();
+      return;
+    }
     document.querySelectorAll("[data-screen]").forEach(function (pkg) {
       var on = pkg.getAttribute("data-screen") === screen;
       pkg.classList.toggle("active", on);
@@ -1698,6 +1780,12 @@
       setTimeout(function () {
         if (currentScreen() === "a3v") nav("a4");
       }, 3200);
+    }
+    // A1-SPID-OK è una conferma fake: dopo 2.5s prosegue da sola al Ruolo (A2)
+    if (screen === "a1-spid-ok") {
+      setTimeout(function () {
+        if (currentScreen() === "a1-spid-ok") nav("a2");
+      }, 2500);
     }
   }
 
@@ -1731,8 +1819,11 @@
     });
   }
 
-  // A1: SPID / CIE → A2
-  wire("a1", ".auth-btn", "a2");
+  // A1: CIE va dritto al Ruolo (A2); SPID apre il pannello a tendina (gestito sotto)
+  wire("a1", ".auth-btn-cie", "a2");
+
+  // A3: "Non ho un codice" → flusso alternativo via verifica mail
+  wire("a3", ".no-code-btn", "a3-nocode");
 
   // A2: "Continua come …" → in base al ruolo selezionato (default: Paziente)
   var continueBtn = document.getElementById("btn-continue-role");
@@ -1771,8 +1862,8 @@
   wire("a6", '[data-i18n="welcomeCta"]', "a7");
 
   // ---- Pulsante "Indietro" (app mode) ----
-  var NO_BACK = ['a1','a3v','a7','b1','b6','c1','c6']; // splash + verifica + home/dashboard: niente indietro
-  var PREV = { a2:'a1',a3:'a2',a4:'a3',a5:'a4',a6:'a5',
+  var NO_BACK = ['a1','a1-spid-ok','a3v','a7','b1','b6','c1','c6']; // splash + verifica + home/dashboard: niente indietro
+  var PREV = { a2:'a1',a3:'a2','a3-nocode':'a3',a4:'a3',a5:'a4',a6:'a5',
                b2:'b1',b3:'b2',b4:'b3',b5:'b4',
                c2:'c1',c3:'c2',c4:'c3',c5:'c4' };
   function goBack(){
@@ -1850,6 +1941,35 @@
   });
 })();
 
+/* ===== A1 — pannello SPID a tendina (accordion) + scelta Namirial ID ===== */
+(function(){
+  var host=document.querySelector('[data-screen="a1"]');
+  if(!host)return;
+  var btn=host.querySelector('.auth-btn-spid');
+  var panel=host.querySelector('.spid-accordion');
+  var idp=host.querySelector('.spid-idp');
+  if(!btn||!panel)return;
+
+  function setOpen(open){
+    panel.classList.toggle('open',open);
+    btn.setAttribute('aria-expanded',open?'true':'false');
+  }
+  setOpen(false);
+
+  // il bottone SPID espande/comprime il pannello (non naviga più)
+  btn.addEventListener('click',function(){
+    setOpen(!panel.classList.contains('open'));
+  });
+
+  // la card Namirial ID porta alla conferma fake di accesso riuscito
+  if(idp)idp.addEventListener('click',function(){ window.location.hash='a1-spid-ok'; });
+
+  // rientrando in A1 il pannello riparte chiuso
+  window.addEventListener('hashchange',function(){
+    if((window.location.hash||'').replace(/^#/,'').toLowerCase()==='a1')setOpen(false);
+  });
+})();
+
 /* ===== DEV ONLY: dev navigator "SEZIONE" A/B/C/ALL — rimuovere nel finale ===== */
 (function () {
   // App unica di default: il navigator di sviluppo appare solo con ?dev=1
@@ -1924,6 +2044,9 @@
       splashBody: "Dopo la dimissione, Between ti accompagna passo dopo passo nel percorso di recupero — in coordinamento con il tuo team ULSS.",
       loginSpid: "Entra con SPID",
       loginCie: "Entra con CIE",
+      spidLoginSuccess: "Accesso eseguito",
+      spidLoginSuccessBody: "Sei stato autenticato correttamente con le tue credenziali Namirial ID. Stiamo preparando il tuo spazio di cura su Between.",
+      spidIdentityVerified: "Identità verificata via SPID",
       activationQuestion: "Hai già un codice di attivazione?",
       roleTitle: "Chi sei in questo percorso?",
       roleSubtitle: "Between adatta contenuti e azioni al tuo ruolo nel piano di cura.",
@@ -2122,6 +2245,9 @@
       splashBody: "After discharge, Between walks with you step by step through recovery — in coordination with your ULSS team.",
       loginSpid: "Log in with SPID",
       loginCie: "Log in with CIE",
+      spidLoginSuccess: "Signed in successfully",
+      spidLoginSuccessBody: "You've been authenticated with your Namirial ID credentials. We're setting up your care space on Between.",
+      spidIdentityVerified: "Identity verified via SPID",
       activationQuestion: "Already have an activation code?",
       roleTitle: "What is your role in this journey?",
       roleSubtitle: "Between adapts content and actions to your role in the care plan.",
