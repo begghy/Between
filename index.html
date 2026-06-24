@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Between — Onboarding (FSE Km Zero)</title>
   <style>
     /* ============================================================
@@ -1248,31 +1248,47 @@
        e lo storyboard/import mode restano invariati.
        ============================================================ */
     @media (max-width: 600px) {
-      /* 4 — il contenitore della schermata attiva riempie il viewport */
-      body.mode-app .page-wrap { padding: 0; max-width: none; }
+      /* 4a — wrapper: niente padding/centratura/max-width sul contenitore */
+      body.mode-app .page-wrap { padding: 0 !important; margin: 0 !important; max-width: none !important; }
+      /* 4b — neutralizza il flex container .screens-row (gap/padding/overflow)
+         così il frame non resta "incassato" anche se non fosse fixed */
+      body.mode-app .screens-row {
+        display: block !important;
+        gap: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        overflow: visible !important;
+      }
+      body.mode-app .flow-section { margin: 0 !important; padding: 0 !important; }
+      /* 4c — la schermata attiva riempie tutto il viewport, top-left, niente padding */
       body.mode-app .screen-package.active {
-        padding: 0;
+        padding: 0 !important;
+        margin: 0 !important;
         align-items: stretch;
         justify-content: stretch;
       }
-      /* 1 — il frame iPhone diventa fullscreen e perde la forma telefono */
+      /* le schermate non attive restano nascoste (come già fanno) */
+      body.mode-app .screen-package { display: none; }
+      body.mode-app .screen-package.active { display: flex; }
+      /* 1 — il frame iPhone diventa fullscreen e perde la forma telefono.
+         !important per vincere con certezza sulla regola base .iphone-frame */
       body.mode-app .screen-package.active .iphone-frame {
-        width: 100vw;
-        height: 100vh;
-        height: 100dvh;
-        border-radius: 0;
-        border: none;
-        box-shadow: none;
-        background: var(--bg-screen);
+        width: 100vw !important;
+        height: 100vh !important;   /* fallback browser senza dvh */
+        height: 100dvh !important;
+        border-radius: 0 !important;
+        border: none !important;
+        box-shadow: none !important;
+        background: var(--bg-screen) !important;
       }
       /* 2 — lo screen-inner perde i 10px di inset e riempie tutto */
       body.mode-app .screen-package.active .screen-inner {
-        inset: 0;
-        border-radius: 0;
+        inset: 0 !important;
+        border-radius: 0 !important;
       }
       /* 3 — la home-indicator sparisce su mobile */
       body.mode-app .home-indicator {
-        display: none;
+        display: none !important;
       }
     }
   </style>
