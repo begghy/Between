@@ -1241,6 +1241,40 @@
     @keyframes toastSlideDown {
       to { transform: translateX(-50%) translateY(0); }
     }
+
+    /* ============================================================
+       MOBILE — app fullscreen senza cornice telefono.
+       Solo in app mode (body.mode-app) e solo <= 600px: il Desktop
+       e lo storyboard/import mode restano invariati.
+       ============================================================ */
+    @media (max-width: 600px) {
+      /* 4 — il contenitore della schermata attiva riempie il viewport */
+      body.mode-app .page-wrap { padding: 0; max-width: none; }
+      body.mode-app .screen-package.active {
+        padding: 0;
+        align-items: stretch;
+        justify-content: stretch;
+      }
+      /* 1 — il frame iPhone diventa fullscreen e perde la forma telefono */
+      body.mode-app .screen-package.active .iphone-frame {
+        width: 100vw;
+        height: 100vh;
+        height: 100dvh;
+        border-radius: 0;
+        border: none;
+        box-shadow: none;
+        background: var(--bg-screen);
+      }
+      /* 2 — lo screen-inner perde i 10px di inset e riempie tutto */
+      body.mode-app .screen-package.active .screen-inner {
+        inset: 0;
+        border-radius: 0;
+      }
+      /* 3 — la home-indicator sparisce su mobile */
+      body.mode-app .home-indicator {
+        display: none;
+      }
+    }
   </style>
 </head>
 <body>
