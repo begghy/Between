@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
   <title>Between — Onboarding (FSE Km Zero)</title>
   <style>
     /* ============================================================
@@ -1247,7 +1250,7 @@
        Solo in app mode (body.mode-app) e solo <= 600px: il Desktop
        e lo storyboard/import mode restano invariati.
        ============================================================ */
-    @media (max-width: 600px) {
+    @media (max-width: 820px), (pointer: coarse) {
       /* 4a — wrapper: niente padding/centratura/max-width sul contenitore */
       body.mode-app .page-wrap { padding: 0 !important; margin: 0 !important; max-width: none !important; }
       /* 4b — neutralizza il flex container .screens-row (gap/padding/overflow)
@@ -1263,6 +1266,9 @@
       /* 4c — la schermata attiva riempie tutto il viewport: niente padding,
          niente centratura (il padding:16px della regola base lasciava il bordo) */
       body.mode-app .screen-package.active {
+        position: fixed !important;
+        inset: 0 !important;
+        display: flex !important;
         padding: 0 !important;
         margin: 0 !important;
         align-items: stretch !important;
@@ -1271,7 +1277,6 @@
       }
       /* le schermate non attive restano nascoste (come già fanno) */
       body.mode-app .screen-package { display: none; }
-      body.mode-app .screen-package.active { display: flex; }
       /* 1 — il frame iPhone riempie il PADRE (fixed inset:0 = viewport): 100%
          è più affidabile di 100vw/100dvh su iOS Safari (barre incoerenti) */
       body.mode-app .screen-package.active .iphone-frame {
