@@ -1218,6 +1218,29 @@
       .coach-spotlight, .coach-tooltip { transition: none; }
       [data-screen="a7"] .accent-card.appt-reveal { animation: none; }
     }
+
+    /* ===== Toast (A3-nocode: nuovo codice richiesto) ===== */
+    .nocode-toast {
+      position: fixed;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%) translateY(-100%);
+      z-index: 9000;
+      padding: 16px 20px;
+      background: var(--glass);
+      border-bottom: 1px solid var(--glass-border);
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 500;
+      text-align: center;
+      cursor: pointer;
+      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(12px);
+      animation: toastSlideDown .4s cubic-bezier(0, 0, 0.58, 1) forwards;
+    }
+    @keyframes toastSlideDown {
+      to { transform: translateX(-50%) translateY(0); }
+    }
   </style>
 </head>
 <body>
@@ -1428,13 +1451,35 @@
                 </div>
                 <div class="stack-gap">
                   <button type="button" class="btn-fill" data-i18n="verifyCodeArrow"></button>
-                  <button type="button" class="btn-ghost" data-i18n="noCode"></button>
+                  <button type="button" class="btn-ghost no-code-btn" data-i18n="noCode"></button>
                 </div>
               </div>
               <div class="home-indicator"></div>
             </div>
           </div>
           <span class="frame-caption">A3 — Attivazione</span>
+        </div>
+
+        <!-- A3-NOCODE RICHIEDI CODICE -->
+        <div class="screen-package" data-screen="a3-nocode">
+          <div class="iphone-frame">
+            <div class="screen-inner">
+              <div class="screen-bg"></div>
+              <header class="status-bar"><span>9:41</span><div class="sb-right"><svg class="sb-ico" width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5.5" width="3" height="6.5" rx="1"/><rect x="10" y="3" width="3" height="9" rx="1"/><rect x="15" y="0.5" width="3" height="11.5" rx="1"/></svg><svg class="sb-ico" width="16" height="12" viewBox="0 0 16 12" fill="currentColor"><path d="M8 2.3c2.4 0 4.6.9 6.3 2.6l-1.5 1.5A6.7 6.7 0 008 4.4 6.7 6.7 0 003.2 6.4L1.7 4.9A9 9 0 018 2.3zm0 3.8a5 5 0 013.5 1.5L10 9.1A2.9 2.9 0 008 8.3c-.8 0-1.5.3-2 .8L4.5 7.6A5 5 0 018 6.1zm0 3.5l1.6 1.6L8 12.6 6.4 11 8 9.6z"/></svg><svg class="sb-batt" width="27" height="13" viewBox="0 0 27 13"><rect x="0.5" y="0.5" width="22" height="12" rx="3" fill="none" stroke="currentColor" stroke-opacity="0.5"/><rect x="2" y="2" width="18" height="9" rx="1.5" fill="currentColor"/><rect x="24" y="4" width="2" height="5" rx="1" fill="currentColor" opacity="0.5"/></svg></div></header>
+              <div class="scroll-area">
+                <div class="dots" aria-hidden="true"><span></span><span class="on"></span><span></span><span></span><span></span></div>
+                <h1 class="screen-title" data-i18n="nocodeTitle"></h1>
+                <p class="subtitle" data-i18n="nocodeBody"></p>
+                <p class="label-caps" data-i18n="nocodeEmailLabel"></p>
+                <div style="margin-bottom:18px;">
+                  <input type="email" id="nocode-email-input" placeholder="nome@example.com" maxlength="120" inputmode="email" autocomplete="email" style="width:100%;padding:12px 14px;border-radius:var(--r-inp);background:var(--glass);border:1px solid var(--glass-border);color:var(--text);font:inherit;font-size:16px;transition:background .2s,border-color .2s;" />
+                </div>
+                <button type="button" class="btn-fill" id="nocode-submit-btn" data-i18n="nocodeSubmitBtn" disabled style="opacity:0.5;cursor:not-allowed;"></button>
+              </div>
+              <div class="home-indicator"></div>
+            </div>
+          </div>
+          <span class="frame-caption">A3-nocode — Richiedi codice</span>
         </div>
 
         <!-- A3v VERIFICA -->
@@ -2165,6 +2210,54 @@
   // A3: "Non ho un codice" → flusso alternativo via verifica mail
   wire("a3", ".no-code-btn", "a3-nocode");
 
+  // A3-nocode: validazione email → richiesta nuovo codice → toast → torna ad A3
+  (function(){
+    var input = document.getElementById('nocode-email-input');
+    var btn = document.getElementById('nocode-submit-btn');
+    if(!input || !btn) return;
+    var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    function valid(){ return EMAIL_RE.test(input.value.trim()); }
+    function sync(){
+      var ok = valid();
+      btn.disabled = !ok;
+      btn.style.opacity = ok ? '1' : '0.5';
+      btn.style.cursor = ok ? 'pointer' : 'not-allowed';
+    }
+    input.addEventListener('input', sync);
+    sync();
+    btn.addEventListener('click', function(){
+      if(btn.disabled || !valid()) return;
+      // stato loading
+      var lang = curLang();
+      btn.disabled = true;
+      btn.style.opacity = '0.5';
+      btn.style.cursor = 'not-allowed';
+      btn.textContent = lang === 'en' ? 'Sending…' : 'Invio in corso…';
+      setTimeout(function(){
+        // crea il toast (testo via i18n)
+        var toast = document.createElement('div');
+        toast.className = 'nocode-toast';
+        toast.setAttribute('data-i18n', 'nocodeToastMsg');
+        document.body.appendChild(toast);
+        if(window.__applyLang) window.__applyLang(curLang());
+        toast.addEventListener('click', function(){
+          if(toast.parentNode) toast.parentNode.removeChild(toast);
+          nav('a3');
+        });
+      }, 1500);
+    });
+    // rientrando in a3-nocode il form riparte pulito
+    window.addEventListener('hashchange', function(){
+      if(currentScreen() === 'a3-nocode'){
+        input.value = '';
+        btn.textContent = '';
+        btn.setAttribute('data-i18n', 'nocodeSubmitBtn');
+        if(window.__applyLang) window.__applyLang(curLang());
+        sync();
+      }
+    });
+  })();
+
   // A2: "Continua come …" → in base al ruolo selezionato (default: Paziente)
   var continueBtn = document.getElementById("btn-continue-role");
   if (continueBtn) {
@@ -2623,6 +2716,11 @@
       whereCodeBodyLong: "Nella lettera di dimissione cartacea oppure nell'SMS inviato dall'ULSS al tuo numero di telefono registrato.",
       verifyCodeArrow: "Verifica codice →",
       noCode: "Non ho un codice",
+      nocodeTitle: "Non hai il codice?",
+      nocodeBody: "Inserisci la tua email per ricevere nuovamente il codice. Verrà inviata una richiesta alla tua ULSS di appartenenza, che ti fornirà un nuovo codice via email.",
+      nocodeEmailLabel: "La tua email",
+      nocodeSubmitBtn: "Invia richiesta nuovo codice di autenticazione →",
+      nocodeToastMsg: "Il tuo nuovo codice di attivazione per la tua dimissione protetta è disponibile",
       verifyingTitle: "Verifica in corso",
       verifyingBody: "Stiamo verificando il tuo codice univoco…",
       privEncrypted: "Connessione cifrata end-to-end",
@@ -2838,6 +2936,11 @@
       whereCodeBodyLong: "In your paper discharge letter or in the SMS sent by ULSS to your registered phone number.",
       verifyCodeArrow: "Verify code →",
       noCode: "I don't have a code",
+      nocodeTitle: "Don't have a code?",
+      nocodeBody: "Enter your email to receive the code again. A request will be sent to your healthcare provider, who will provide you with a new code via email.",
+      nocodeEmailLabel: "Your email",
+      nocodeSubmitBtn: "Send request for new authentication code →",
+      nocodeToastMsg: "Your new activation code for your protected discharge is now available",
       verifyingTitle: "Verifying",
       verifyingBody: "We're verifying your unique code…",
       privEncrypted: "End-to-end encrypted connection",
