@@ -1119,20 +1119,23 @@
     .coach-overlay {
       position: absolute; inset: 0;
       z-index: 16; /* sopra la tab-bar (z 15) così spotlight e tab evidenziati emergono */
-      background: rgba(8, 15, 30, 0.78);
-      -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px);
+      /* contenitore trasparente: cattura il tap e ospita spotlight + tooltip.
+         L'oscuramento è prodotto dallo spotlight (box-shadow gigante), non da qui,
+         così l'elemento evidenziato resta nitido nei suoi colori reali. */
       cursor: pointer;
     }
     .coach-overlay.hidden { display: none; }
-    /* "lift": l'elemento del passo corrente (e dei precedenti) emerge nitido sopra l'overlay */
-    .coach-lift { position: relative; z-index: 17; }
     .coach-spotlight {
       position: absolute;
       top: 0; left: 0; width: 0; height: 0;
       border-radius: 18px;
-      background: rgba(255, 176, 32, 0.18);
-      border: 2px solid rgba(255, 176, 32, 0.9);
-      box-shadow: 0 0 24px rgba(255, 176, 32, 0.45), 0 0 0 4px rgba(255, 176, 32, 0.12);
+      background: transparent;
+      /* il primo valore "buca" l'overlay: scurisce tutto attorno al rettangolo,
+         lasciando l'interno completamente libero. Gli altri due sono il ring ambra. */
+      box-shadow:
+        0 0 0 9999px rgba(8, 15, 30, 0.82),
+        0 0 0 2px rgba(255, 176, 32, 0.9),
+        0 0 24px rgba(255, 176, 32, 0.45);
       pointer-events: none;
       transition: top .35s ease, left .35s ease, width .35s ease, height .35s ease;
     }
@@ -1991,7 +1994,6 @@
 
   // ---- Coach mark / product tour (A7) — stato ----
   var coachStep = 0;                                  // indice del passo corrente
-  var coachLifted = [];                               // elementi sollevati (.coach-lift) nel tour
   var coachForce = params.get("tour") === "1";        // ?tour=1 → parte sempre entrando in a7
   // se la pagina viene caricata/ricaricata già su #a7, NON far partire il tour
   // a quel primo load: lo si fa solo sulle navigazioni successive verso a7.
@@ -2195,15 +2197,8 @@
   }
 
   function hideCoach() {
-    clearCoachLift(); // cleanup di sicurezza se il tour viene chiuso
     var e = coachEls();
     if (e && e.overlay) e.overlay.classList.add("hidden");
-  }
-
-  // Rimuove il "lift" da tutti gli elementi sollevati durante il tour.
-  function clearCoachLift() {
-    coachLifted.forEach(function (el) { el.classList.remove("coach-lift"); });
-    coachLifted = [];
   }
 
   // Box di un elemento (o unione di più elementi) relativo al frame (.screen-inner).
@@ -2289,12 +2284,8 @@
       ? Array.prototype.slice.call(host.querySelectorAll(step.unionSel))
       : (host.querySelector(step.sel) ? [host.querySelector(step.sel)] : []);
     if (!els.length) return;
-    // "lift" cumulativo: l'elemento corrente (e i precedenti) restano nitidi
-    // sopra l'overlay; i passi non ancora mostrati restano offuscati.
-    els.forEach(function (el) {
-      el.classList.add("coach-lift");
-      if (coachLifted.indexOf(el) === -1) coachLifted.push(el);
-    });
+    // lo spotlight (box-shadow gigante) buca l'overlay: l'elemento corrente
+    // resta nitido nei suoi colori reali, tutto il resto è scuro.
     // porta i target in vista, poi posiziona dopo il layout
     coachScrollIntoView(host, els);
     requestAnimationFrame(function () {
@@ -2322,7 +2313,6 @@
 
   // Fine tour: chiude l'overlay, aggiorna il titolo e rivela le card a cascata.
   function finishCoach() {
-    clearCoachLift(); // la Home torna pulita prima della cascata finale
     hideCoach();
     var host = pkg("a7");
     if (!host) return;
@@ -2350,7 +2340,6 @@
   // Avvia il tour dal primo passo, nascondendo prima gli appuntamenti.
   function startCoachTour() {
     coachStep = 0;
-    clearCoachLift(); // parte sempre con nessun elemento sollevato
     hideAppointments();
     showCoach();
     renderCoachStep();
