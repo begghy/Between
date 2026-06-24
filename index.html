@@ -1134,6 +1134,10 @@
       pointer-events: none;
       transition: top .35s ease, left .35s ease, width .35s ease, height .35s ease;
     }
+    .coach-spotlight.pill { border-radius: 999px; }
+    .coach-spotlight.circle { border-radius: 50%; }
+    /* Sottolineatura ambra del passo 1 (giorno) */
+    .coach-underline { text-decoration: underline; text-decoration-color: #ffb020; text-underline-offset: 3px; }
     .coach-tooltip {
       position: absolute;
       top: 0; left: 20px;
@@ -1157,8 +1161,20 @@
       font-size: 12px; color: var(--muted2);
       letter-spacing: 0.02em;
     }
+    /* Appuntamenti: nascosti durante il tour, rivelati a cascata alla fine */
+    [data-screen="a7"] .accent-card.appt-hidden {
+      opacity: 0; pointer-events: none;
+    }
+    [data-screen="a7"] .accent-card.appt-reveal {
+      animation: apptReveal .45s ease both;
+    }
+    @keyframes apptReveal {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
     @media (prefers-reduced-motion: reduce) {
       .coach-spotlight, .coach-tooltip { transition: none; }
+      [data-screen="a7"] .accent-card.appt-reveal { animation: none; }
     }
   </style>
 </head>
@@ -1500,7 +1516,7 @@
                   </div>
                   <div class="mood-reply" style="display:none;"></div>
                 </div>
-                <p class="section-kicker" data-i18n="nextAppointmentCaps"></p>
+                <p class="section-kicker appt-kicker" data-i18n="nextAppointmentCaps"></p>
                 <div class="glass accent-card">
                   <div class="meta" data-i18n="patientAppWhen"></div>
                   <div class="main" data-i18n="patientAppTitle"></div>
@@ -2143,9 +2159,22 @@
   wire("a5", '[data-i18n="skipForNow"]', "a6");
   wire("a6", '[data-i18n="welcomeCta"]', "a7");
 
-  // ---- Coach mark / product tour (A7) — funzioni base (scheletro) ----
-  // La sequenza completa dei passi verrà aggiunta in un secondo momento; per ora
-  // queste funzioni gestiscono solo overlay, spotlight e posizionamento.
+  // ---- Coach mark / product tour (A7) — sequenza completa ----
+  // I 7 passi guidati della Home, nell'ordine esatto. Ogni passo: target
+  // (sel singolo oppure unionSel per più elementi), chiave stringa del testo,
+  // forma dello spotlight ("pill" zone larghe, "circle" icone), underline opz.
+  var COACH_STEPS = [
+    { sel: '[data-i18n="dayCount"]',        key: "coachDay",          shape: "pill",   underline: true },
+    { sel: '.header-row .avatar-round',     key: "coachProfile",      shape: "circle" },
+    { sel: '.mood-block',                   key: "coachMood",         shape: "pill"   },
+    { sel: '.accent-card',                  key: "coachAppointment",  shape: "pill"   },
+    { unionSel: '.med-row',                 key: "coachMeds",         shape: "pill"   },
+    { sel: '.tab-bar .tab:nth-child(2)',    key: "coachTabPlan",      shape: "circle" },
+    { sel: '.tab-bar .tab:nth-child(3)',    key: "coachTabMessages",  shape: "circle" }
+  ];
+
+  function curLang() { return document.documentElement.lang === "en" ? "en" : "it"; }
+
   function coachEls() {
     var host = pkg("a7");
     if (!host) return null;
@@ -2167,24 +2196,34 @@
     if (e && e.overlay) e.overlay.classList.add("hidden");
   }
 
-  // Posiziona lo spotlight sopra targetEl (con padding) e la tooltip vicino,
-  // calcolando le coordinate relative al frame (.screen-inner, offset parent).
-  function positionCoach(targetEl) {
+  // Box di un elemento (o unione di più elementi) relativo al frame (.screen-inner).
+  function boxOf(els) {
     var e = coachEls();
-    if (!e || !e.overlay || !e.spot || !targetEl) return;
-    var ref = e.overlay.parentElement; // .screen-inner
-    var refRect = ref.getBoundingClientRect();
-    var r = targetEl.getBoundingClientRect();
+    if (!e || !e.overlay) return null;
+    var refRect = e.overlay.parentElement.getBoundingClientRect();
+    var list = els.nodeType ? [els] : els; // singolo nodo o lista
+    if (!list || !list.length) return null;
+    var minT = Infinity, minL = Infinity, maxR = -Infinity, maxB = -Infinity;
+    for (var i = 0; i < list.length; i++) {
+      var r = list[i].getBoundingClientRect();
+      minT = Math.min(minT, r.top); minL = Math.min(minL, r.left);
+      maxR = Math.max(maxR, r.right); maxB = Math.max(maxB, r.bottom);
+    }
+    return { top: minT - refRect.top, left: minL - refRect.left, width: maxR - minL, height: maxB - minT };
+  }
+
+  // Posiziona lo spotlight su un box (coord. relative al frame) e la tooltip vicino.
+  function positionCoachBox(box) {
+    var e = coachEls();
+    if (!e || !e.overlay || !e.spot || !box) return;
+    var refRect = e.overlay.parentElement.getBoundingClientRect();
     var PAD = 8;
-    var top = r.top - refRect.top - PAD;
-    var left = r.left - refRect.left - PAD;
-    var w = r.width + PAD * 2;
-    var h = r.height + PAD * 2;
+    var top = box.top - PAD, left = box.left - PAD;
+    var w = box.width + PAD * 2, h = box.height + PAD * 2;
     e.spot.style.top = top + "px";
     e.spot.style.left = left + "px";
     e.spot.style.width = w + "px";
     e.spot.style.height = h + "px";
-    // tooltip: sotto lo spotlight se è nella metà superiore, altrimenti sopra
     if (e.tip) {
       var frameH = refRect.height, frameW = refRect.width;
       var tipH = e.tip.offsetHeight || 96;
@@ -2197,20 +2236,116 @@
     }
   }
 
-  // Avanza al passo successivo. Finché non c'è la sequenza, chiude solo l'overlay.
-  function nextCoachStep() {
-    hideCoach();
+  // Compat: posiziona lo spotlight su un singolo elemento.
+  function positionCoach(targetEl) {
+    if (targetEl) positionCoachBox(boxOf(targetEl));
   }
 
-  // Avvia il tour: mostra l'overlay e per ora evidenzia il primo elemento di prova
-  // (dayCount), così si verifica che spotlight e tooltip si posizionino bene.
-  function startCoachTour() {
-    coachStep = 0;
-    showCoach();
+  // Scorre la scroll-area così che gli elementi del passo siano in vista.
+  function coachScrollIntoView(host, els) {
+    var sc = host.querySelector(".scroll-area");
+    if (!sc) return;
+    var inside = els.filter(function (el) { return sc.contains(el); });
+    if (!inside.length) return; // es. i tab vivono nella tab-bar, non scrollano
+    var scRect = sc.getBoundingClientRect();
+    var top = Infinity, bottom = -Infinity;
+    inside.forEach(function (el) {
+      var r = el.getBoundingClientRect();
+      top = Math.min(top, r.top); bottom = Math.max(bottom, r.bottom);
+    });
+    var delta = (top + bottom) / 2 - (scRect.top + sc.clientHeight / 2);
+    var newTop = Math.max(0, Math.min(sc.scrollTop + delta, sc.scrollHeight - sc.clientHeight));
+    sc.scrollTop = newTop;
+  }
+
+  // Evidenzia il passo corrente: testo, forma, sottolineatura, scroll, posizione.
+  function renderCoachStep() {
+    var host = pkg("a7"), e = coachEls();
+    if (!host || !e) return;
+    var step = COACH_STEPS[coachStep];
+    if (!step) return;
+    // sottolineatura ambra solo sul passo "giorno"
+    var dayEl = host.querySelector('[data-i18n="dayCount"]');
+    if (dayEl) dayEl.classList.toggle("coach-underline", !!step.underline);
+    // testo via i18n (data-i18n + ri-traduzione globale)
+    if (e.text) {
+      e.text.setAttribute("data-i18n", step.key);
+      if (window.__applyLang) window.__applyLang(curLang());
+    }
+    // forma dello spotlight
+    if (e.spot) e.spot.className = "coach-spotlight " + (step.shape || "pill");
+    // risolvi i target del passo
+    var els = step.unionSel
+      ? Array.prototype.slice.call(host.querySelectorAll(step.unionSel))
+      : (host.querySelector(step.sel) ? [host.querySelector(step.sel)] : []);
+    if (!els.length) return;
+    // porta i target in vista, poi posiziona dopo il layout
+    coachScrollIntoView(host, els);
+    requestAnimationFrame(function () {
+      var box = boxOf(els);
+      if (box) positionCoachBox(box);
+    });
+  }
+
+  // Nasconde le 4 card appuntamento (restano nel layout, opacity 0) e riporta
+  // il titolo a quello di default: lo stato "nascosto" vale solo durante il tour.
+  function hideAppointments() {
     var host = pkg("a7");
     if (!host) return;
-    var target = host.querySelector('[data-i18n="dayCount"]');
-    if (target) requestAnimationFrame(function () { positionCoach(target); });
+    host.querySelectorAll(".accent-card").forEach(function (c) {
+      c.classList.remove("appt-reveal");
+      c.style.animationDelay = "";
+      c.classList.add("appt-hidden");
+    });
+    var kicker = host.querySelector(".appt-kicker");
+    if (kicker) {
+      kicker.setAttribute("data-i18n", "nextAppointmentCaps");
+      if (window.__applyLang) window.__applyLang(curLang());
+    }
+  }
+
+  // Fine tour: chiude l'overlay, aggiorna il titolo e rivela le card a cascata.
+  function finishCoach() {
+    hideCoach();
+    var host = pkg("a7");
+    if (!host) return;
+    // riporta la Home in cima così la cascata di appuntamenti è ben visibile
+    var sc = host.querySelector(".scroll-area");
+    if (sc) sc.scrollTop = 0;
+    var dayEl = host.querySelector('[data-i18n="dayCount"]');
+    if (dayEl) dayEl.classList.remove("coach-underline");
+    // titolo aggiornato
+    var kicker = host.querySelector(".appt-kicker");
+    if (kicker) kicker.setAttribute("data-i18n", "coachAppointmentsScheduled");
+    if (window.__applyLang) window.__applyLang(curLang());
+    // rivelazione a cascata (rispetta prefers-reduced-motion)
+    var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    host.querySelectorAll(".accent-card").forEach(function (c, i) {
+      c.classList.remove("appt-hidden");
+      if (reduce) { c.classList.remove("appt-reveal"); return; }
+      c.classList.remove("appt-reveal");
+      void c.offsetWidth;
+      c.style.animationDelay = (i * 120) + "ms";
+      c.classList.add("appt-reveal");
+    });
+  }
+
+  // Avvia il tour dal primo passo, nascondendo prima gli appuntamenti.
+  function startCoachTour() {
+    coachStep = 0;
+    hideAppointments();
+    showCoach();
+    renderCoachStep();
+  }
+
+  // Avanza: passo successivo o, se finiti, chiude e lancia la cascata finale.
+  function nextCoachStep() {
+    coachStep++;
+    if (coachStep < COACH_STEPS.length) {
+      renderCoachStep();
+    } else {
+      finishCoach();
+    }
   }
 
   // Un tap in qualunque punto dell'overlay avanza il tour.
@@ -2501,6 +2636,14 @@
       tabMessages: "Messaggi",
       tabProfile: "Profilo",
       coachHint: "Tocca per continuare",
+      coachDay: "Qui vedi i giorni dalla tua dimissione protetta, per restare sempre aggiornato. È un dato condiviso con il tuo caregiver e con il personale medico che ti ha in cura.",
+      coachProfile: "Qui trovi il tuo profilo con le tue informazioni personali.",
+      coachMood: "Questa è la parte emotiva del tuo percorso. Ogni giorno puoi indicare come ti senti, e una notifica aggiornerà il caregiver e il personale medico ogni volta che lo desideri.",
+      coachAppointment: "Qui vedi rapidamente i tuoi prossimi appuntamenti e quelli futuri. Sono visibili a te e al caregiver, ma vengono gestiti dal personale medico, che può avvisarti di eventuali cambi.",
+      coachMeds: "Qui hai un promemoria dei farmaci da assumere ogni giorno. Ti basta spuntare ogni farmaco e verrà registrato nel sistema.",
+      coachTabPlan: "Qui puoi vedere il tuo piano di cura.",
+      coachTabMessages: "Qui puoi contattare direttamente la tua ULSS per qualsiasi dubbio o problema.",
+      coachAppointmentsScheduled: "Prossimi appuntamenti programmati dal personale medico",
       cgSplashHeadline: "Sei al fianco di chi ami.",
       cgSplashBody: "Between ti permette di seguire il percorso di cura di chi ti è vicino, in coordinamento con il team ULSS.",
       cgSplashCodeLink: "Hai un codice caregiver?",
@@ -2708,6 +2851,14 @@
       tabMessages: "Messages",
       tabProfile: "Profile",
       coachHint: "Tap to continue",
+      coachDay: "Here you can see the days since your protected discharge, so you always stay up to date. This information is shared with your caregiver and the medical staff caring for you.",
+      coachProfile: "Here you'll find your profile with your personal information.",
+      coachMood: "This is the emotional side of your journey. Each day you can share how you feel, and a notification will update your caregiver and medical staff whenever you choose.",
+      coachAppointment: "Here you can quickly see your upcoming and future appointments. They're visible to you and your caregiver, but managed by the medical staff, who can notify you of any changes.",
+      coachMeds: "Here you have a daily reminder of the medications to take. Just check off each one and it will be recorded in the system.",
+      coachTabPlan: "Here you can view your care plan.",
+      coachTabMessages: "Here you can contact your local health authority directly for any question or issue.",
+      coachAppointmentsScheduled: "Upcoming appointments scheduled by the medical staff",
       cgSplashHeadline: "You're there for someone you love.",
       cgSplashBody: "Between lets you follow the care journey of your loved one, in coordination with the ULSS team.",
       cgSplashCodeLink: "Already have a caregiver code?",
@@ -2831,6 +2982,8 @@
     document.getElementById("btn-en").setAttribute("aria-pressed", l === "en");
     updateRoleCta();
   }
+  // esposta al router (altro scope) per ri-tradurre il testo del coach mark
+  window.__applyLang = applyLanguage;
 
   function updateRoleCta() {
     var sel = document.querySelector(".role-cards-a .role-card.selected");
