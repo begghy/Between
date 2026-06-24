@@ -1293,13 +1293,13 @@
     }
     /* la home-indicator sparisce su mobile */
     body.is-mobile.mode-app .home-indicator { display: none !important; }
-    /* safe-area: la status-bar finta non deve finire sotto il notch */
+    /* su mobile la status-bar finta (9:41 + icone) si nasconde del tutto */
     body.is-mobile.mode-app .screen-package.active .status-bar {
-      padding-top: calc(14px + env(safe-area-inset-top)) !important;
-      height: calc(54px + env(safe-area-inset-top)) !important;
+      display: none !important;
     }
+    /* lo scroll-area parte dal bordo alto rispettando solo la safe-area del notch */
     body.is-mobile.mode-app .screen-package.active .scroll-area {
-      top: calc(54px + env(safe-area-inset-top)) !important;
+      top: env(safe-area-inset-top) !important;
     }
   </style>
 </head>
