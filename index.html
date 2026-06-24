@@ -1260,22 +1260,23 @@
         overflow: visible !important;
       }
       body.mode-app .flow-section { margin: 0 !important; padding: 0 !important; }
-      /* 4c — la schermata attiva riempie tutto il viewport, top-left, niente padding */
+      /* 4c — la schermata attiva riempie tutto il viewport: niente padding,
+         niente centratura (il padding:16px della regola base lasciava il bordo) */
       body.mode-app .screen-package.active {
         padding: 0 !important;
         margin: 0 !important;
-        align-items: stretch;
-        justify-content: stretch;
+        align-items: stretch !important;
+        justify-content: flex-start !important;
+        overflow: hidden !important;
       }
       /* le schermate non attive restano nascoste (come già fanno) */
       body.mode-app .screen-package { display: none; }
       body.mode-app .screen-package.active { display: flex; }
-      /* 1 — il frame iPhone diventa fullscreen e perde la forma telefono.
-         !important per vincere con certezza sulla regola base .iphone-frame */
+      /* 1 — il frame iPhone riempie il PADRE (fixed inset:0 = viewport): 100%
+         è più affidabile di 100vw/100dvh su iOS Safari (barre incoerenti) */
       body.mode-app .screen-package.active .iphone-frame {
-        width: 100vw !important;
-        height: 100vh !important;   /* fallback browser senza dvh */
-        height: 100dvh !important;
+        width: 100% !important;
+        height: 100% !important;
         border-radius: 0 !important;
         border: none !important;
         box-shadow: none !important;
@@ -1289,6 +1290,14 @@
       /* 3 — la home-indicator sparisce su mobile */
       body.mode-app .home-indicator {
         display: none !important;
+      }
+      /* 4 — safe-area: la status-bar finta non deve finire sotto il notch */
+      body.mode-app .screen-package.active .status-bar {
+        padding-top: calc(14px + env(safe-area-inset-top)) !important;
+        height: calc(54px + env(safe-area-inset-top)) !important;
+      }
+      body.mode-app .screen-package.active .scroll-area {
+        top: calc(54px + env(safe-area-inset-top)) !important;
       }
     }
   </style>
