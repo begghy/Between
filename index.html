@@ -1163,14 +1163,18 @@
       top: 0; left: 0; width: 0; height: 0;
       border-radius: 18px;
       background: transparent;
-      /* il primo valore "buca" l'overlay: scurisce tutto attorno al rettangolo,
-         lasciando l'interno completamente libero. Gli altri due sono il ring ambra. */
+      /* nessun box-shadow a riposo: lo spotlight è del tutto invisibile quando
+         il tour non è attivo (niente alone nell'angolo alto-sinistra). */
+      pointer-events: none;
+      transition: top .35s ease, left .35s ease, width .35s ease, height .35s ease;
+    }
+    /* L'oscuramento (box-shadow gigante che "buca" l'overlay) + il ring ambra
+       esistono SOLO mentre il coach è attivo (overlay non hidden). */
+    .coach-overlay:not(.hidden) .coach-spotlight {
       box-shadow:
         0 0 0 9999px rgba(8, 15, 30, 0.82),
         0 0 0 2px rgba(255, 176, 32, 0.9),
         0 0 24px rgba(255, 176, 32, 0.45);
-      pointer-events: none;
-      transition: top .35s ease, left .35s ease, width .35s ease, height .35s ease;
     }
     .coach-spotlight.pill { border-radius: 999px; }
     .coach-spotlight.circle { border-radius: 50%; }
@@ -2233,11 +2237,10 @@
     var e = coachEls();
     if (!e) return;
     if (e.overlay) e.overlay.classList.add("hidden");
-    // Spegnimento completo dello spotlight: azzera dimensioni/posizione e
-    // soprattutto rimuove il box-shadow gigante, così non proietta più
-    // nessuna ombra sul contenuto della Home a tour finito o chiuso.
+    // Il box-shadow oscurante vive nel CSS solo su .coach-overlay:not(.hidden),
+    // quindi aggiungere .hidden lo spegne già. Qui collassiamo solo dimensioni
+    // e posizione dello spotlight per non lasciarlo "parcheggiato" altrove.
     if (e.spot) {
-      e.spot.style.boxShadow = "none";
       e.spot.style.width = "0px";
       e.spot.style.height = "0px";
       e.spot.style.top = "0px";
@@ -2384,11 +2387,8 @@
   // Avvia il tour dal primo passo, nascondendo prima gli appuntamenti.
   function startCoachTour() {
     coachStep = 0;
-    // riaccende lo spotlight: rimuove l'override inline messo da hideCoach
-    // (boxShadow "none") così torna a valere l'ombra del CSS; renderCoachStep
-    // riposiziona width/height sul primo step.
-    var e = coachEls();
-    if (e && e.spot) e.spot.style.boxShadow = "";
+    // L'oscuramento torna da solo via CSS appena showCoach() toglie .hidden
+    // dall'overlay; renderCoachStep riposiziona width/height sul primo step.
     hideAppointments();
     showCoach();
     renderCoachStep();
