@@ -1019,6 +1019,58 @@
       font-size: 13px; color: var(--muted);
     }
     .spid-verified-row img { height: 20px; width: auto; display: block; }
+
+    /* A1-CIE — lettura carta: contenitore 3D, flip continuo, barra di caricamento */
+    .cie-read-area {
+      display: flex; flex-direction: column;
+      justify-content: center; align-items: center;
+      text-align: center; min-height: 100%;
+      overflow: hidden; padding: 0 28px;
+    }
+    .cie-card-perspective {
+      perspective: 1000px;
+      width: 280px; max-width: 74%;
+      margin-bottom: 38px;
+    }
+    .cie-card-3d {
+      width: 100%;
+      transform-style: preserve-3d;
+      animation: cieCardFlip 3s linear infinite;
+      filter: drop-shadow(0 18px 40px rgba(0, 0, 0, 0.45));
+    }
+    @keyframes cieCardFlip {
+      from { transform: rotateY(0deg); }
+      to   { transform: rotateY(360deg); }
+    }
+    .cie-read-text {
+      font-size: 15px; color: var(--muted);
+      margin-bottom: 26px;
+    }
+    .cie-read-text .cie-txt-2 { display: none; }
+    .cie-read-text.reading .cie-txt-1 { display: none; }
+    .cie-read-text.reading .cie-txt-2 { display: inline; }
+    .cie-progress-track {
+      width: 220px; max-width: 72%;
+      height: 8px;
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--r-inp);
+      overflow: hidden;
+    }
+    .cie-progress-fill {
+      height: 100%; width: 0%;
+      background: var(--accent);
+      border-radius: var(--r-inp);
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .cie-card-3d { animation: none; transform: rotateY(0deg); }
+    }
+
+    /* A1-CIE-OK — riga "identità verificata" testuale (senza logo) */
+    .cie-verified-row {
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      font-size: 13px; color: var(--muted);
+    }
   </style>
 </head>
 <body>
@@ -1097,6 +1149,73 @@
             <div class="home-indicator"></div>
           </div></div>
           <span class="frame-caption">A1-SPID-OK — Accesso eseguito</span>
+        </div>
+
+        <!-- A1-CIE — LETTURA CARTA (non interagibile, prosegue da sola verso a1-cie-ok) -->
+        <div class="screen-package" data-screen="a1-cie">
+          <div class="iphone-frame"><div class="screen-inner">
+            <div class="screen-bg"></div>
+            <header class="status-bar"><span>9:41</span><div class="sb-right"><svg class="sb-ico" width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5.5" width="3" height="6.5" rx="1"/><rect x="10" y="3" width="3" height="9" rx="1"/><rect x="15" y="0.5" width="3" height="11.5" rx="1"/></svg><svg class="sb-ico" width="16" height="12" viewBox="0 0 16 12" fill="currentColor"><path d="M8 2.3c2.4 0 4.6.9 6.3 2.6l-1.5 1.5A6.7 6.7 0 008 4.4 6.7 6.7 0 003.2 6.4L1.7 4.9A9 9 0 018 2.3zm0 3.8a5 5 0 013.5 1.5L10 9.1A2.9 2.9 0 008 8.3c-.8 0-1.5.3-2 .8L4.5 7.6A5 5 0 018 6.1zm0 3.5l1.6 1.6L8 12.6 6.4 11 8 9.6z"/></svg><svg class="sb-batt" width="27" height="13" viewBox="0 0 27 13"><rect x="0.5" y="0.5" width="22" height="12" rx="3" fill="none" stroke="currentColor" stroke-opacity="0.5"/><rect x="2" y="2" width="18" height="9" rx="1.5" fill="currentColor"/><rect x="24" y="4" width="2" height="5" rx="1" fill="currentColor" opacity="0.5"/></svg></div></header>
+            <div class="scroll-area" style="overflow:hidden;">
+              <div class="cie-read-area">
+                <div class="cie-card-perspective" aria-hidden="true">
+                  <div class="cie-card-3d">
+                    <svg viewBox="0 0 340 214" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+                    <rect x="0" y="0" width="340" height="214" rx="18" fill="#1b3a6b" stroke="#2d5494" stroke-width="1.5"/>
+                    <rect x="0" y="0" width="340" height="58" rx="18" fill="#16305a"/>
+                    <rect x="0" y="40" width="340" height="18" fill="#16305a"/>
+                    <text x="24" y="26" fill="#ffffff" font-family="sans-serif" font-size="13" font-weight="500" letter-spacing="0.5">REPUBBLICA ITALIANA</text>
+                    <text x="24" y="46" fill="#a9c2e8" font-family="sans-serif" font-size="10.5" letter-spacing="1.5">CARTA DI IDENTITÀ ELETTRONICA</text>
+                    <rect x="24" y="80" width="78" height="98" rx="10" fill="#284f86" stroke="#3f68a3" stroke-width="1"/>
+                    <circle cx="63" cy="112" r="18" fill="#4a7fd4"/>
+                    <path d="M40 166 Q63 134 86 166 Z" fill="#4a7fd4"/>
+                    <rect x="122" y="86" width="104" height="18" rx="6" fill="#284f86"/>
+                    <rect x="122" y="116" width="124" height="11" rx="5" fill="#23477c"/>
+                    <rect x="122" y="134" width="96" height="11" rx="5" fill="#23477c"/>
+                    <rect x="122" y="152" width="112" height="11" rx="5" fill="#23477c"/>
+                    <rect x="268" y="112" width="48" height="60" rx="10" fill="#d4b24a" stroke="#e6c766" stroke-width="1"/>
+                    <g stroke="#1b3a6b" stroke-width="1.2" fill="none">
+                    <line x1="292" y1="112" x2="292" y2="172"/>
+                    <line x1="268" y1="130" x2="316" y2="130"/>
+                    <line x1="268" y1="154" x2="316" y2="154"/>
+                    <rect x="282" y="130" width="20" height="24" rx="3" fill="none"/>
+                    </g>
+                    <g transform="translate(24, 188)">
+                    <rect x="0" y="0" width="292" height="16" rx="5" fill="#0f2245"/>
+                    <g fill="#cdddf2">
+                    <rect x="6" y="3" width="2" height="10"/><rect x="10" y="3" width="1" height="10"/><rect x="13" y="3" width="3" height="10"/><rect x="18" y="3" width="1" height="10"/><rect x="21" y="3" width="2" height="10"/><rect x="25" y="3" width="1" height="10"/><rect x="28" y="3" width="3" height="10"/><rect x="33" y="3" width="2" height="10"/><rect x="37" y="3" width="1" height="10"/><rect x="40" y="3" width="2" height="10"/><rect x="44" y="3" width="3" height="10"/><rect x="49" y="3" width="1" height="10"/><rect x="52" y="3" width="2" height="10"/><rect x="56" y="3" width="1" height="10"/><rect x="59" y="3" width="3" height="10"/><rect x="64" y="3" width="2" height="10"/><rect x="68" y="3" width="1" height="10"/><rect x="71" y="3" width="2" height="10"/><rect x="75" y="3" width="3" height="10"/><rect x="80" y="3" width="1" height="10"/><rect x="83" y="3" width="2" height="10"/><rect x="87" y="3" width="1" height="10"/><rect x="90" y="3" width="3" height="10"/><rect x="95" y="3" width="2" height="10"/><rect x="99" y="3" width="1" height="10"/><rect x="102" y="3" width="2" height="10"/><rect x="106" y="3" width="3" height="10"/><rect x="111" y="3" width="1" height="10"/><rect x="114" y="3" width="2" height="10"/><rect x="118" y="3" width="1" height="10"/><rect x="121" y="3" width="3" height="10"/><rect x="126" y="3" width="2" height="10"/><rect x="130" y="3" width="1" height="10"/><rect x="133" y="3" width="2" height="10"/><rect x="137" y="3" width="3" height="10"/><rect x="142" y="3" width="1" height="10"/><rect x="145" y="3" width="2" height="10"/><rect x="149" y="3" width="1" height="10"/><rect x="152" y="3" width="3" height="10"/><rect x="157" y="3" width="2" height="10"/><rect x="161" y="3" width="1" height="10"/><rect x="164" y="3" width="2" height="10"/><rect x="168" y="3" width="3" height="10"/><rect x="173" y="3" width="1" height="10"/><rect x="176" y="3" width="2" height="10"/><rect x="180" y="3" width="1" height="10"/><rect x="183" y="3" width="3" height="10"/><rect x="188" y="3" width="2" height="10"/><rect x="192" y="3" width="1" height="10"/><rect x="195" y="3" width="2" height="10"/><rect x="199" y="3" width="3" height="10"/><rect x="204" y="3" width="1" height="10"/><rect x="207" y="3" width="2" height="10"/><rect x="211" y="3" width="1" height="10"/><rect x="214" y="3" width="3" height="10"/><rect x="219" y="3" width="2" height="10"/><rect x="223" y="3" width="1" height="10"/><rect x="226" y="3" width="2" height="10"/><rect x="230" y="3" width="3" height="10"/><rect x="235" y="3" width="1" height="10"/><rect x="238" y="3" width="2" height="10"/><rect x="242" y="3" width="1" height="10"/><rect x="245" y="3" width="3" height="10"/><rect x="250" y="3" width="2" height="10"/><rect x="254" y="3" width="1" height="10"/><rect x="257" y="3" width="2" height="10"/><rect x="261" y="3" width="3" height="10"/><rect x="266" y="3" width="1" height="10"/><rect x="269" y="3" width="2" height="10"/><rect x="273" y="3" width="1" height="10"/><rect x="276" y="3" width="3" height="10"/><rect x="281" y="3" width="2" height="10"/><rect x="285" y="3" width="1" height="10"/>
+                    </g>
+                    </g>
+                    </svg>
+                  </div>
+                </div>
+                <p class="cie-read-text"><span class="cie-txt-1" data-i18n="cieReadInstruction"></span><span class="cie-txt-2" data-i18n="cieReading"></span></p>
+                <div class="cie-progress-track" aria-hidden="true">
+                  <div class="cie-progress-fill"></div>
+                </div>
+              </div>
+            </div>
+            <div class="home-indicator"></div>
+          </div></div>
+          <span class="frame-caption">A1-CIE — Lettura carta</span>
+        </div>
+
+        <!-- A1-CIE-OK — ACCESSO CIE RIUSCITO (fake, prosegue da solo verso A2) -->
+        <div class="screen-package" data-screen="a1-cie-ok">
+          <div class="iphone-frame"><div class="screen-inner">
+            <div class="screen-bg"></div>
+            <header class="status-bar"><span>9:41</span><div class="sb-right"><svg class="sb-ico" width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5.5" width="3" height="6.5" rx="1"/><rect x="10" y="3" width="3" height="9" rx="1"/><rect x="15" y="0.5" width="3" height="11.5" rx="1"/></svg><svg class="sb-ico" width="16" height="12" viewBox="0 0 16 12" fill="currentColor"><path d="M8 2.3c2.4 0 4.6.9 6.3 2.6l-1.5 1.5A6.7 6.7 0 008 4.4 6.7 6.7 0 003.2 6.4L1.7 4.9A9 9 0 018 2.3zm0 3.8a5 5 0 013.5 1.5L10 9.1A2.9 2.9 0 008 8.3c-.8 0-1.5.3-2 .8L4.5 7.6A5 5 0 018 6.1zm0 3.5l1.6 1.6L8 12.6 6.4 11 8 9.6z"/></svg><svg class="sb-batt" width="27" height="13" viewBox="0 0 27 13"><rect x="0.5" y="0.5" width="22" height="12" rx="3" fill="none" stroke="currentColor" stroke-opacity="0.5"/><rect x="2" y="2" width="18" height="9" rx="1.5" fill="currentColor"/><rect x="24" y="4" width="2" height="5" rx="1" fill="currentColor" opacity="0.5"/></svg></div></header>
+            <div class="scroll-area" style="display:flex;flex-direction:column;justify-content:center;min-height:100%;">
+              <div style="display:flex;justify-content:center;margin-bottom:24px;"><div class="avatar-round success-check" style="width:72px;height:72px;font-size:34px;">✓</div></div>
+              <h1 class="screen-title" data-i18n="cieLoginSuccess" style="text-align:center;margin-bottom:14px;"></h1>
+              <p class="subtitle" data-i18n="cieLoginSuccessBody" style="text-align:center;max-width:300px;margin:0 auto 22px;"></p>
+              <div class="cie-verified-row">
+                <span data-i18n="cieIdentityVerified"></span>
+              </div>
+            </div>
+            <div class="home-indicator"></div>
+          </div></div>
+          <span class="frame-caption">A1-CIE-OK — Accesso eseguito</span>
         </div>
 
         <!-- A2 RUOLO -->
@@ -1740,7 +1859,7 @@
   document.body.classList.add("mode-app");
 
   var SCREENS = [
-    "a1", "a1-spid-ok", "a2", "a3", "a3-nocode", "a3v", "a4", "a5", "a6", "a7",
+    "a1", "a1-spid-ok", "a1-cie", "a1-cie-ok", "a2", "a3", "a3-nocode", "a3v", "a4", "a5", "a6", "a7",
     "b1", "b2", "b3", "b4", "b5", "b6",
     "c1", "c2", "c3", "c4", "c5", "c6"
   ];
@@ -1787,6 +1906,44 @@
         if (currentScreen() === "a1-spid-ok") nav("a2");
       }, 2500);
     }
+    // A1-CIE è la lettura carta: barra ferma a 0 per 3s, poi si riempie in 5s,
+    // il testo passa a "Lettura in corso…" e infine prosegue a a1-cie-ok.
+    // Il testo è gestito con due span tradotti (data-i18n) e un toggle di classe,
+    // così non serve richiamare l'i18n (che vive in un altro scope).
+    if (screen === "a1-cie") {
+      var cieScreen = document.querySelector('[data-screen="a1-cie"]');
+      if (cieScreen) {
+        var bar = cieScreen.querySelector(".cie-progress-fill");
+        var txt = cieScreen.querySelector(".cie-read-text");
+        // reset: barra a 0, testo iniziale ("Avvicina la carta…")
+        if (txt) txt.classList.remove("reading");
+        if (bar) {
+          bar.style.transition = "none";
+          bar.style.width = "0%";
+          // forza reflow per applicare il reset prima della transizione
+          void bar.offsetWidth;
+        }
+        // fase 1: delay fisico di 3s a barra ferma
+        setTimeout(function () {
+          if (currentScreen() !== "a1-cie") return;
+          if (txt) txt.classList.add("reading"); // mostra "Lettura in corso…"
+          // fase 2: riempimento in 5s
+          if (bar) {
+            bar.style.transition = "width 5s linear";
+            bar.style.width = "100%";
+          }
+          setTimeout(function () {
+            if (currentScreen() === "a1-cie") nav("a1-cie-ok");
+          }, 5000);
+        }, 3000);
+      }
+    }
+    // A1-CIE-OK è una conferma fake: dopo 2.5s prosegue da sola al Ruolo (A2)
+    if (screen === "a1-cie-ok") {
+      setTimeout(function () {
+        if (currentScreen() === "a1-cie-ok") nav("a2");
+      }, 2500);
+    }
   }
 
   function nav(to) {
@@ -1819,8 +1976,8 @@
     });
   }
 
-  // A1: CIE va dritto al Ruolo (A2); SPID apre il pannello a tendina (gestito sotto)
-  wire("a1", ".auth-btn-cie", "a2");
+  // A1: CIE apre la schermata di lettura carta (a1-cie → a1-cie-ok → A2); SPID apre il pannello a tendina (gestito sotto)
+  wire("a1", ".auth-btn-cie", "a1-cie");
 
   // A3: "Non ho un codice" → flusso alternativo via verifica mail
   wire("a3", ".no-code-btn", "a3-nocode");
@@ -1862,7 +2019,7 @@
   wire("a6", '[data-i18n="welcomeCta"]', "a7");
 
   // ---- Pulsante "Indietro" (app mode) ----
-  var NO_BACK = ['a1','a1-spid-ok','a3v','a7','b1','b6','c1','c6']; // splash + verifica + home/dashboard: niente indietro
+  var NO_BACK = ['a1','a1-spid-ok','a1-cie','a1-cie-ok','a3v','a7','b1','b6','c1','c6']; // splash + verifica + home/dashboard: niente indietro
   var PREV = { a2:'a1',a3:'a2','a3-nocode':'a3',a4:'a3',a5:'a4',a6:'a5',
                b2:'b1',b3:'b2',b4:'b3',b5:'b4',
                c2:'c1',c3:'c2',c4:'c3',c5:'c4' };
@@ -2047,6 +2204,11 @@
       spidLoginSuccess: "Accesso eseguito",
       spidLoginSuccessBody: "Sei stato autenticato correttamente con le tue credenziali Namirial ID. Stiamo preparando il tuo spazio di cura su Between.",
       spidIdentityVerified: "Identità verificata via SPID",
+      cieReadInstruction: "Avvicina la carta al dispositivo",
+      cieReading: "Lettura in corso…",
+      cieLoginSuccess: "Accesso eseguito",
+      cieLoginSuccessBody: "Sei stato autenticato correttamente con la tua Carta d'Identità Elettronica. Stiamo preparando il tuo spazio di cura su Between.",
+      cieIdentityVerified: "Identità verificata via CIE",
       activationQuestion: "Hai già un codice di attivazione?",
       roleTitle: "Chi sei in questo percorso?",
       roleSubtitle: "Between adatta contenuti e azioni al tuo ruolo nel piano di cura.",
@@ -2248,6 +2410,11 @@
       spidLoginSuccess: "Signed in successfully",
       spidLoginSuccessBody: "You've been authenticated with your Namirial ID credentials. We're setting up your care space on Between.",
       spidIdentityVerified: "Identity verified via SPID",
+      cieReadInstruction: "Hold your card near the device",
+      cieReading: "Reading…",
+      cieLoginSuccess: "Signed in successfully",
+      cieLoginSuccessBody: "You've been authenticated with your Electronic Identity Card. We're setting up your care space on Between.",
+      cieIdentityVerified: "Identity verified via CIE",
       activationQuestion: "Already have an activation code?",
       roleTitle: "What is your role in this journey?",
       roleSubtitle: "Between adapts content and actions to your role in the care plan.",
