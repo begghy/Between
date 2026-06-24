@@ -1174,7 +1174,7 @@
          così l'elemento evidenziato resta nitido nei suoi colori reali. */
       cursor: pointer;
     }
-    .coach-overlay.hidden { display: none; }
+    .coach-overlay.hidden { display: none; pointer-events: none; }
     .coach-spotlight {
       position: absolute;
       top: 0; left: 0; width: 0; height: 0;
@@ -2248,7 +2248,18 @@
 
   function hideCoach() {
     var e = coachEls();
-    if (e && e.overlay) e.overlay.classList.add("hidden");
+    if (!e) return;
+    if (e.overlay) e.overlay.classList.add("hidden");
+    // Spegnimento completo dello spotlight: azzera dimensioni/posizione e
+    // soprattutto rimuove il box-shadow gigante, così non proietta più
+    // nessuna ombra sul contenuto della Home a tour finito o chiuso.
+    if (e.spot) {
+      e.spot.style.boxShadow = "none";
+      e.spot.style.width = "0px";
+      e.spot.style.height = "0px";
+      e.spot.style.top = "0px";
+      e.spot.style.left = "0px";
+    }
   }
 
   // Box di un elemento (o unione di più elementi) relativo al frame (.screen-inner).
@@ -2390,6 +2401,11 @@
   // Avvia il tour dal primo passo, nascondendo prima gli appuntamenti.
   function startCoachTour() {
     coachStep = 0;
+    // riaccende lo spotlight: rimuove l'override inline messo da hideCoach
+    // (boxShadow "none") così torna a valere l'ombra del CSS; renderCoachStep
+    // riposiziona width/height sul primo step.
+    var e = coachEls();
+    if (e && e.spot) e.spot.style.boxShadow = "";
     hideAppointments();
     showCoach();
     renderCoachStep();
