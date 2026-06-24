@@ -1114,6 +1114,52 @@
       display: flex; align-items: center; justify-content: center; gap: 10px;
       font-size: 13px; color: var(--muted);
     }
+
+    /* ===== Coach mark / product tour (A7) ===== */
+    .coach-overlay {
+      position: absolute; inset: 0;
+      z-index: 4; /* sopra al contenuto (z 1), sotto la status bar (z 5) */
+      background: rgba(8, 15, 30, 0.78);
+      -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px);
+      cursor: pointer;
+    }
+    .coach-overlay.hidden { display: none; }
+    .coach-spotlight {
+      position: absolute;
+      top: 0; left: 0; width: 0; height: 0;
+      border-radius: 18px;
+      background: rgba(255, 176, 32, 0.18);
+      border: 2px solid rgba(255, 176, 32, 0.9);
+      box-shadow: 0 0 24px rgba(255, 176, 32, 0.45), 0 0 0 4px rgba(255, 176, 32, 0.12);
+      pointer-events: none;
+      transition: top .35s ease, left .35s ease, width .35s ease, height .35s ease;
+    }
+    .coach-tooltip {
+      position: absolute;
+      top: 0; left: 20px;
+      max-width: 280px;
+      padding: 16px 18px;
+      color: var(--text);
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--r-card);
+      -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+      pointer-events: none;
+      transition: top .35s ease, left .35s ease;
+    }
+    .coach-text {
+      margin: 0 0 10px;
+      font-size: 15px; line-height: 1.4;
+      color: var(--text);
+    }
+    .coach-hint {
+      font-size: 12px; color: var(--muted2);
+      letter-spacing: 0.02em;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .coach-spotlight, .coach-tooltip { transition: none; }
+    }
   </style>
 </head>
 <body>
@@ -1471,8 +1517,15 @@
                 <div class="tab on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10.5L12 3l9 7.5V20a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1v-9.5z"/></svg><span data-i18n="tabHome"></span></div>
                 <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5h6m-6 4h6m-9 4h12M9 17h6"/></svg><span data-i18n="tabPlan"></span></div>
                 <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a4 4 0 01-4 4H7l-4 4V7a4 4 0 014-4h10a4 4 0 014 4v8z"/></svg><span data-i18n="tabMessages"></span></div>
-                <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20a8 8 0 0116 0"/></svg><span data-i18n="tabProfile"></span></div>
               </nav>
+              <!-- Coach mark / product tour (popolato e mostrato via JS) -->
+              <div class="coach-overlay hidden">
+                <div class="coach-spotlight"></div>
+                <div class="coach-tooltip">
+                  <p class="coach-text"></p>
+                  <div class="coach-hint" data-i18n="coachHint"></div>
+                </div>
+              </div>
               <div class="home-indicator"></div>
             </div>
           </div>
@@ -1918,6 +1971,13 @@
     return SCREENS.indexOf(h) >= 0 ? h : DEFAULT_SCREEN;
   }
 
+  // ---- Coach mark / product tour (A7) — stato ----
+  var coachStep = 0;                                  // indice del passo corrente
+  var coachForce = params.get("tour") === "1";        // ?tour=1 → parte sempre entrando in a7
+  // se la pagina viene caricata/ricaricata già su #a7, NON far partire il tour
+  // a quel primo load: lo si fa solo sulle navigazioni successive verso a7.
+  var coachSuppressInitial = (currentScreen() === "a7");
+
   function render() {
     var screen = currentScreen();
     // Protezione: se il markup della schermata non esiste ancora (una schermata
@@ -1994,6 +2054,21 @@
         if (currentScreen() === "a1-cie-ok") nav("a2");
       }, 2500);
     }
+    // A7 (Home): avvio del coach mark / product tour.
+    // - ?tour=1: parte sempre quando si entra in a7 (override demo);
+    // - altrimenti parte solo arrivando per navigazione, NON al load diretto su a7.
+    if (screen === "a7") {
+      if (coachForce) {
+        startCoachTour();
+      } else if (coachSuppressInitial) {
+        coachSuppressInitial = false; // consuma il "salta" una sola volta
+        hideCoach();
+      } else {
+        startCoachTour();
+      }
+    } else {
+      hideCoach();
+    }
   }
 
   function nav(to) {
@@ -2067,6 +2142,84 @@
   wire("a5", '[data-i18n="enableNotifArrow"]', "a6");
   wire("a5", '[data-i18n="skipForNow"]', "a6");
   wire("a6", '[data-i18n="welcomeCta"]', "a7");
+
+  // ---- Coach mark / product tour (A7) — funzioni base (scheletro) ----
+  // La sequenza completa dei passi verrà aggiunta in un secondo momento; per ora
+  // queste funzioni gestiscono solo overlay, spotlight e posizionamento.
+  function coachEls() {
+    var host = pkg("a7");
+    if (!host) return null;
+    return {
+      overlay: host.querySelector(".coach-overlay"),
+      spot: host.querySelector(".coach-spotlight"),
+      tip: host.querySelector(".coach-tooltip"),
+      text: host.querySelector(".coach-text")
+    };
+  }
+
+  function showCoach() {
+    var e = coachEls();
+    if (e && e.overlay) e.overlay.classList.remove("hidden");
+  }
+
+  function hideCoach() {
+    var e = coachEls();
+    if (e && e.overlay) e.overlay.classList.add("hidden");
+  }
+
+  // Posiziona lo spotlight sopra targetEl (con padding) e la tooltip vicino,
+  // calcolando le coordinate relative al frame (.screen-inner, offset parent).
+  function positionCoach(targetEl) {
+    var e = coachEls();
+    if (!e || !e.overlay || !e.spot || !targetEl) return;
+    var ref = e.overlay.parentElement; // .screen-inner
+    var refRect = ref.getBoundingClientRect();
+    var r = targetEl.getBoundingClientRect();
+    var PAD = 8;
+    var top = r.top - refRect.top - PAD;
+    var left = r.left - refRect.left - PAD;
+    var w = r.width + PAD * 2;
+    var h = r.height + PAD * 2;
+    e.spot.style.top = top + "px";
+    e.spot.style.left = left + "px";
+    e.spot.style.width = w + "px";
+    e.spot.style.height = h + "px";
+    // tooltip: sotto lo spotlight se è nella metà superiore, altrimenti sopra
+    if (e.tip) {
+      var frameH = refRect.height, frameW = refRect.width;
+      var tipH = e.tip.offsetHeight || 96;
+      var tipW = e.tip.offsetWidth || 280;
+      var tipTop = (top + h / 2 < frameH / 2) ? (top + h + 14) : (top - 14 - tipH);
+      tipTop = Math.max(60, Math.min(tipTop, frameH - tipH - 20));
+      var tipLeft = Math.max(16, Math.min(left, frameW - tipW - 16));
+      e.tip.style.top = tipTop + "px";
+      e.tip.style.left = tipLeft + "px";
+    }
+  }
+
+  // Avanza al passo successivo. Finché non c'è la sequenza, chiude solo l'overlay.
+  function nextCoachStep() {
+    hideCoach();
+  }
+
+  // Avvia il tour: mostra l'overlay e per ora evidenzia il primo elemento di prova
+  // (dayCount), così si verifica che spotlight e tooltip si posizionino bene.
+  function startCoachTour() {
+    coachStep = 0;
+    showCoach();
+    var host = pkg("a7");
+    if (!host) return;
+    var target = host.querySelector('[data-i18n="dayCount"]');
+    if (target) requestAnimationFrame(function () { positionCoach(target); });
+  }
+
+  // Un tap in qualunque punto dell'overlay avanza il tour.
+  (function () {
+    var e = coachEls();
+    if (e && e.overlay) {
+      e.overlay.addEventListener("click", function () { nextCoachStep(); });
+    }
+  })();
 
   // ---- Pulsante "Indietro" (app mode) ----
   var NO_BACK = ['a1','a1-spid-ok','a1-cie','a1-cie-ok','a3v','a7','b1','b6','c1','c6']; // splash + verifica + home/dashboard: niente indietro
@@ -2347,6 +2500,7 @@
       tabPlan: "Piano",
       tabMessages: "Messaggi",
       tabProfile: "Profilo",
+      coachHint: "Tocca per continuare",
       cgSplashHeadline: "Sei al fianco di chi ami.",
       cgSplashBody: "Between ti permette di seguire il percorso di cura di chi ti è vicino, in coordinamento con il team ULSS.",
       cgSplashCodeLink: "Hai un codice caregiver?",
@@ -2553,6 +2707,7 @@
       tabPlan: "Plan",
       tabMessages: "Messages",
       tabProfile: "Profile",
+      coachHint: "Tap to continue",
       cgSplashHeadline: "You're there for someone you love.",
       cgSplashBody: "Between lets you follow the care journey of your loved one, in coordination with the ULSS team.",
       cgSplashCodeLink: "Already have a caregiver code?",
