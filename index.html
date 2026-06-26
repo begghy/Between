@@ -920,16 +920,16 @@
       overflow-y: auto !important;
     }
     body.mode-app:not(.is-mobile) .screen-package.active .iphone-frame {
-      width: 480px !important;
-      max-width: 480px !important;
-      min-width: 480px !important;
+      width: 1100px !important;
+      max-width: 1100px !important;
+      min-width: auto !important;
       height: auto !important;
       min-height: 100vh !important;   /* riempie almeno l'altezza schermo */
       border-radius: 0 !important;
       border: none !important;
       box-shadow: none !important;
       background: var(--bg-screen) !important;
-      flex: 0 0 auto !important;   /* non si allarga né si restringe: resta 480 fissa */
+      flex: 0 0 auto !important;   /* contenitore di sfondo largo, non si comprime */
     }
     body.mode-app:not(.is-mobile) .screen-package.active .screen-inner {
       position: relative !important;  /* non più absolute inset:10px */
@@ -946,7 +946,10 @@
       inset: auto !important;
       top: auto !important;
       height: auto !important;
-      padding: 32px 28px 48px !important;  /* respiro interno colonna: top, laterali, bottom */
+      width: 100% !important;
+      max-width: 720px !important;          /* contenuti leggibili, centrati nell'area larga */
+      margin: 0 auto !important;
+      padding: 48px 24px 64px !important;   /* respiro interno: top, laterali, bottom */
       overflow: visible !important;
     }
 
