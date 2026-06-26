@@ -922,6 +922,9 @@
     body.mode-app:not(.is-mobile) .screen-package.active .screen-bg {
       background: transparent !important; /* evita doppio gradiente: lo sfondo è sul contenitore full-screen */
     }
+    body.mode-app:not(.is-mobile) .screen-package.active .screen-bg::after {
+      display: none !important; /* texture confinata ai 1100px: creava le linee verticali ai bordi */
+    }
     body.mode-app:not(.is-mobile) .screen-package.active .iphone-frame {
       width: 1100px !important;
       max-width: 1100px !important;
