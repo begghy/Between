@@ -910,12 +910,13 @@
     /* DESKTOP app mode: sito web pulito — colonna centrata 480px, niente telefono */
     body.mode-app:not(.is-mobile) .screen-package.active {
       display: flex !important;
+      flex-direction: row !important;        /* FIX: era column ereditato, invertiva gli assi */
       position: fixed !important;
       inset: 0 !important;
-      align-items: flex-start !important;   /* contenuto parte dall'alto */
-      justify-content: center !important;   /* COLONNA CENTRATA orizzontalmente */
+      align-items: flex-start !important;    /* contenuto parte dall'alto (asse verticale in row) */
+      justify-content: center !important;    /* colonna centrata orizzontalmente (asse orizzontale in row) */
       padding: 0 !important;
-      background: var(--bg-page) !important; /* sfondo pieno su TUTTO lo schermo */
+      background: var(--bg-screen) !important; /* FIX: stesso colore della colonna, niente stacco di tinta */
       overflow-y: auto !important;
     }
     body.mode-app:not(.is-mobile) .screen-package.active .iphone-frame {
