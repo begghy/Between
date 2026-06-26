@@ -916,8 +916,11 @@
       align-items: flex-start !important;    /* contenuto parte dall'alto (asse verticale in row) */
       justify-content: center !important;    /* colonna centrata orizzontalmente (asse orizzontale in row) */
       padding: 0 !important;
-      background: var(--bg-screen) !important; /* FIX: stesso colore della colonna, niente stacco di tinta */
+      background: radial-gradient(ellipse 80% 55% at 50% -10%, rgba(74,127,212,0.28) 0%, transparent 70%), #0a1628 !important; /* stesso gradiente di .screen-bg, esteso a tutto lo schermo */
       overflow-y: auto !important;
+    }
+    body.mode-app:not(.is-mobile) .screen-package.active .screen-bg {
+      background: transparent !important; /* evita doppio gradiente: lo sfondo è sul contenitore full-screen */
     }
     body.mode-app:not(.is-mobile) .screen-package.active .iphone-frame {
       width: 1100px !important;
