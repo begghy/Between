@@ -907,34 +907,28 @@
       padding: 16px;
     }
 
-    /* DESKTOP app mode: riquadro pulito 390x844, niente estetica telefono */
-    body.mode-app:not(.is-mobile) .screen-package.active .iphone-frame {
-      width: var(--frame-w);
-      height: var(--frame-h);
-      max-width: var(--frame-w);
-      border-radius: 28px;
-      border: 1px solid rgba(255,255,255,0.10);
-      box-shadow: 0 20px 60px rgba(0,0,0,0.45);
-      background: var(--bg-screen);
-    }
-
     /* DESKTOP app mode: sito web pulito — colonna centrata 480px, niente telefono */
     body.mode-app:not(.is-mobile) .screen-package.active {
-      align-items: flex-start;        /* il contenuto parte in alto */
-      justify-content: center;        /* colonna centrata orizzontalmente */
-      padding: 0;
-      background: var(--bg-page);     /* sfondo pieno desktop dietro la colonna */
-      overflow-y: auto;
+      display: flex !important;
+      position: fixed !important;
+      inset: 0 !important;
+      align-items: flex-start !important;   /* contenuto parte dall'alto */
+      justify-content: center !important;   /* COLONNA CENTRATA orizzontalmente */
+      padding: 0 !important;
+      background: var(--bg-page) !important; /* sfondo pieno su TUTTO lo schermo */
+      overflow-y: auto !important;
     }
     body.mode-app:not(.is-mobile) .screen-package.active .iphone-frame {
       width: 480px !important;
       max-width: 480px !important;
+      min-width: 480px !important;
       height: auto !important;
       min-height: 100vh !important;   /* riempie almeno l'altezza schermo */
       border-radius: 0 !important;
       border: none !important;
       box-shadow: none !important;
       background: var(--bg-screen) !important;
+      flex: 0 0 auto !important;   /* non si allarga né si restringe: resta 480 fissa */
     }
     body.mode-app:not(.is-mobile) .screen-package.active .screen-inner {
       position: relative !important;  /* non più absolute inset:10px */
