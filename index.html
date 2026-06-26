@@ -2132,9 +2132,17 @@
 
   // Rilevamento touch/mobile: applica il fullscreen via classe is-mobile invece
   // di affidarsi alle sole media query (inaffidabili nelle webview WhatsApp/IG).
-  if (window.matchMedia("(pointer: coarse)").matches || ("ontouchstart" in window) || navigator.maxTouchPoints > 0 || window.innerWidth <= 820) {
-    document.body.classList.add("is-mobile");
-  }
+  (function () {
+    var coarse = window.matchMedia("(pointer: coarse)").matches;
+    var noHover = window.matchMedia("(hover: none)").matches;
+    var narrow = window.matchMedia("(max-width: 768px)").matches;
+    var uaMobile = /Android|iPhone|iPad|iPod|Mobile|Silk/i.test(navigator.userAgent);
+    // È "mobile" solo se: lo user agent è mobile, OPPURE (puntatore touch primario E niente hover E schermo stretto).
+    // Questo esclude i laptop touch (che hanno hover e schermo largo) e il desktop con finestra ristretta (che ha hover).
+    if (uaMobile || (coarse && noHover && narrow)) {
+      document.body.classList.add("is-mobile");
+    }
+  })();
 
   var SCREENS = [
     "a1", "a1-spid-ok", "a1-cie", "a1-cie-ok", "a2", "a3", "a3-nocode", "a3v", "a4", "a5", "a6", "a7",
