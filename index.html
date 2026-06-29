@@ -992,7 +992,12 @@
     body.mode-app:not(.is-mobile) .screen-package[data-screen="a1-cie-ok"].active .scroll-area,
     body.mode-app:not(.is-mobile) .screen-package[data-screen="a3v"].active .scroll-area,
     body.mode-app:not(.is-mobile) .screen-package[data-screen="a6"].active .scroll-area {
+      position: relative !important;        /* toglie l'ancoraggio absolute top:54px/bottom:0 che la teneva in cima */
+      top: auto !important;
+      bottom: auto !important;
+      inset: auto !important;
       min-height: auto !important;          /* niente 100vh: la card non viene spinta in cima */
+      width: 100% !important;
       padding-top: 24px !important;
       padding-bottom: 24px !important;
     }
