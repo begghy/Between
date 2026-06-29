@@ -3253,6 +3253,58 @@
     }
   };
 
+  /* ============================================================
+     PATIENT_DATA — dati realistici della paziente fittizia.
+     NON fa parte di STRINGS: sono dati clinici che restano in
+     italiano in entrambe le lingue UI (IT/EN). Blocco isolato.
+     ============================================================ */
+  const PATIENT_DATA = {
+    profile: {
+      name: "Elena Colombo",
+      dob: "22 giugno 1958",
+      age: 68,
+      fiscalCode: "CLMELN58H62H501W",
+      dischargeDate: "12 marzo 2026",
+      hospitalizationDays: 4,
+      hospitalizationRange: "8–12 marzo 2026",
+      diagnosis: "Ictus ischemico territorio ACM destro",
+      hospital: "ULSS 6 Euganea",
+      ward: "Reparto C - Neurologia"
+    },
+    caregiver: {
+      name: "Marco Colombo",
+      relation: "Figlio",
+      phone: "+39 327 456 7890"
+    },
+    meds: {
+      morning: [
+        { name: "Acetilsalicilico 100 mg", time: "08:00", taken: false },
+        { name: "Atorvastatina 40 mg", time: "08:30", taken: false },
+        { name: "Losartan 50 mg", time: "08:00", taken: false }
+      ],
+      afternoon: [
+        { name: "Acetilsalicilico 100 mg", time: "14:00", taken: false }
+      ],
+      evening: [
+        { name: "Atorvastatina 40 mg", time: "20:30", taken: false }
+      ]
+    },
+    appointments: [
+      { date: "19 marzo 2026", time: "09:00", title: "Valutazione Riabilitativa", location: "Centro Riabilitativo Nord, Padova", accompaniment: false },
+      { date: "26 marzo 2026", time: "10:30", title: "Visita Neurologica", location: "ULSS 6 Euganea - Reparto C", accompaniment: true },
+      { date: "02 aprile 2026", time: "14:00", title: "Esami sangue follow-up", location: "Laboratorio ULSS 6 Euganea", accompaniment: false }
+    ],
+    messages: [
+      { date: "12 marzo 2026, 16:45", author: "Dr. Bianchi", role: "Neurologo", fromPatient: false, text: "Buongiorno Elena, il suo accesso a Between è attivo. Qui può vedere il piano di cura e scrivermi per qualunque dubbio. Il primo controllo è il 26 marzo.", read: true },
+      { date: "13 marzo 2026, 10:15", author: "Dr. Bianchi", role: "Neurologo", fromPatient: false, text: "Come sta oggi? Qualche difficoltà con i farmaci? Mi faccia sapere.", read: true },
+      { date: "13 marzo 2026, 11:30", author: "Elena Colombo", role: "Paziente", fromPatient: true, text: "Bene, grazie. Nessun problema. Solo un po' di stanchezza.", read: true }
+    ],
+    mood: [
+      { date: "12 marzo 2026", emoji: "😌", note: "Tranquilla" },
+      { date: "13 marzo 2026", emoji: "😐", note: "Stanca ma serena" }
+    ]
+  };
+
   var lang = "it";
 
   function applyLanguage(l) {
