@@ -2429,6 +2429,8 @@
     });
     var sc = a7.querySelector('.scroll-area');
     if (sc) sc.scrollTop = 0;
+    // rigenera farmaci/appuntamenti così la sezione riflette lo stato corrente
+    if (window.renderPatientData) window.renderPatientData();
   }
   // wiring tab a7
   document.querySelectorAll('[data-screen="a7"] .tab-bar .tab').forEach(function(t){
@@ -3631,6 +3633,7 @@
           med.taken = true;                 // fonte di verità persistente
           sessionTakenIds.push(med.id);     // tienilo visibile fino a uscita/rientro
           row.classList.add("done");
+          renderPatientData();              // rigenera subito anche il Piano
         });
         medHost.appendChild(row);
       });
@@ -3693,6 +3696,8 @@
       });
     }
   }
+  // esposta globale: switchTab vive in un'altra IIFE e la richiama via window
+  window.renderPatientData = renderPatientData;
 
   applyLanguage("it");
   renderPatientData();
