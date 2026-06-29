@@ -915,7 +915,7 @@
       flex-direction: row !important;        /* FIX: era column ereditato, invertiva gli assi */
       position: fixed !important;
       inset: 0 !important;
-      align-items: center !important;    /* contenuto parte dall'alto (asse verticale in row) */
+      align-items: flex-start !important;   /* torna a flex-start; il centraggio lo fa margin:auto sul frame */
       justify-content: center !important;    /* colonna centrata orizzontalmente (asse orizzontale in row) */
       padding: 0 !important;
       background: #0e2038 !important; /* TEST: colore piatto unico per escludere artefatti da gradiente/blend */
@@ -942,6 +942,8 @@
       background: transparent !important;   /* solo box di layout: lo sfondo è il gradiente full-screen del contenitore */
       flex: 0 0 auto !important;   /* contenitore di sfondo largo, non si comprime */
       overflow: visible !important;   /* nessun clip che possa disegnare un bordo */
+      margin-top: auto !important;     /* con margin-bottom auto centra il frame se c'è spazio, ma permette lo scroll se eccede */
+      margin-bottom: auto !important;
     }
     body.mode-app:not(.is-mobile) .screen-package.active .screen-inner {
       position: relative !important;  /* non più absolute inset:10px */
