@@ -912,13 +912,13 @@
     /* DESKTOP app mode: sito web pulito — colonna centrata 480px, niente telefono */
     body.mode-app:not(.is-mobile) .screen-package.active {
       display: flex !important;
-      flex-direction: column !important;     /* colonna: asse verticale = main axis */
+      flex-direction: column !important;     /* colonna verticale: contenuto impilato */
       position: fixed !important;
       inset: 0 !important;
-      align-items: center !important;        /* centra orizzontalmente la colonna */
-      justify-content: safe center !important;    /* centra verticalmente se il contenuto è più corto della finestra */
+      align-items: center !important;        /* centra la colonna orizzontalmente */
+      justify-content: safe center !important;    /* centra verticalmente se il contenuto sta nella finestra, altrimenti scrolla dall'alto */
       padding: 0 !important;
-      background: #0e2038 !important; /* TEST: colore piatto unico per escludere artefatti da gradiente/blend */
+      background: #0e2038 !important; /* sfondo desktop pieno */
       overflow-y: auto !important;
     }
     body.mode-app:not(.is-mobile) .screen-package.active .screen-bg {
