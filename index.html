@@ -967,6 +967,26 @@
       overflow: visible !important;
     }
 
+    /* Schermate corte di conferma/lettura: su desktop restano centrate verticalmente
+       invece di partire dall'alto, così non vengono tagliate in cima. */
+    body.mode-app:not(.is-mobile) .screen-package[data-screen="a1-spid-ok"].active,
+    body.mode-app:not(.is-mobile) .screen-package[data-screen="a1-cie"].active,
+    body.mode-app:not(.is-mobile) .screen-package[data-screen="a1-cie-ok"].active,
+    body.mode-app:not(.is-mobile) .screen-package[data-screen="a3v"].active,
+    body.mode-app:not(.is-mobile) .screen-package[data-screen="a6"].active {
+      align-items: center !important;   /* centra il contenuto sull'asse verticale */
+    }
+    body.mode-app:not(.is-mobile) .screen-package[data-screen="a1-spid-ok"].active .scroll-area,
+    body.mode-app:not(.is-mobile) .screen-package[data-screen="a1-cie"].active .scroll-area,
+    body.mode-app:not(.is-mobile) .screen-package[data-screen="a1-cie-ok"].active .scroll-area,
+    body.mode-app:not(.is-mobile) .screen-package[data-screen="a3v"].active .scroll-area,
+    body.mode-app:not(.is-mobile) .screen-package[data-screen="a6"].active .scroll-area {
+      min-height: 100vh !important;     /* occupa tutta l'altezza così il centraggio ha spazio reale */
+      justify-content: center !important;
+      padding-top: 24px !important;
+      padding-bottom: 24px !important;
+    }
+
     @keyframes screenIn {
       from { opacity: 0; transform: scale(0.992); }
       to   { opacity: 1; transform: none; }
