@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-  <meta http-equiv="Pragma" content="no-cache" />
-  <meta http-equiv="Expires" content="0" />
   <title>Between — Onboarding (FSE Km Zero)</title>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <style>
     /* ============================================================
        Between — single-file prototype (Paziente / Caregiver / Operatore)
@@ -915,7 +915,7 @@
       flex-direction: row !important;        /* FIX: era column ereditato, invertiva gli assi */
       position: fixed !important;
       inset: 0 !important;
-      align-items: flex-start !important;    /* contenuto parte dall'alto (asse verticale in row) */
+      align-items: center !important;    /* contenuto parte dall'alto (asse verticale in row) */
       justify-content: center !important;    /* colonna centrata orizzontalmente (asse orizzontale in row) */
       padding: 0 !important;
       background: #0e2038 !important; /* TEST: colore piatto unico per escludere artefatti da gradiente/blend */
@@ -935,7 +935,7 @@
       max-width: 1100px !important;
       min-width: auto !important;
       height: auto !important;
-      min-height: 100vh !important;   /* riempie almeno l'altezza schermo */
+      min-height: auto !important;   /* riempie almeno l'altezza schermo */
       border-radius: 0 !important;
       border: none !important;
       box-shadow: none !important;
@@ -947,7 +947,7 @@
       position: relative !important;  /* non più absolute inset:10px */
       inset: auto !important;
       width: 100% !important;
-      min-height: 100vh !important;
+      min-height: auto !important;
       border-radius: 0 !important;
       background: transparent !important;  /* lascia passare il gradiente full-screen del contenitore */
       overflow: visible !important;   /* nessun clip che possa disegnare un bordo */
@@ -963,43 +963,8 @@
       width: 100% !important;
       max-width: 720px !important;          /* contenuti leggibili, centrati nell'area larga */
       margin: 0 auto !important;
-      padding: 48px 24px 64px !important;   /* respiro interno: top, laterali, bottom */
+      padding: 32px 24px 32px !important;   /* respiro interno: top, laterali, bottom */
       overflow: visible !important;
-    }
-
-    /* Schermate corte di conferma/lettura: su desktop centrate verticalmente.
-       L'iphone-frame (alto 100vh) fa da contenitore flex centrante; i figli
-       perdono il min-height:100vh così il contenuto può stare al centro. */
-    body.mode-app:not(.is-mobile) .screen-package[data-screen="a1-spid-ok"].active .iphone-frame,
-    body.mode-app:not(.is-mobile) .screen-package[data-screen="a1-cie"].active .iphone-frame,
-    body.mode-app:not(.is-mobile) .screen-package[data-screen="a1-cie-ok"].active .iphone-frame,
-    body.mode-app:not(.is-mobile) .screen-package[data-screen="a3v"].active .iphone-frame,
-    body.mode-app:not(.is-mobile) .screen-package[data-screen="a6"].active .iphone-frame {
-      display: flex !important;
-      flex-direction: column !important;
-      justify-content: center !important;   /* centra screen-inner sull'asse verticale */
-    }
-    body.mode-app:not(.is-mobile) .screen-package[data-screen="a1-spid-ok"].active .screen-inner,
-    body.mode-app:not(.is-mobile) .screen-package[data-screen="a1-cie"].active .screen-inner,
-    body.mode-app:not(.is-mobile) .screen-package[data-screen="a1-cie-ok"].active .screen-inner,
-    body.mode-app:not(.is-mobile) .screen-package[data-screen="a3v"].active .screen-inner,
-    body.mode-app:not(.is-mobile) .screen-package[data-screen="a6"].active .screen-inner {
-      min-height: auto !important;          /* non più 100vh: così non occupa tutta l'altezza */
-      flex: 0 0 auto !important;
-    }
-    body.mode-app:not(.is-mobile) .screen-package[data-screen="a1-spid-ok"].active .scroll-area,
-    body.mode-app:not(.is-mobile) .screen-package[data-screen="a1-cie"].active .scroll-area,
-    body.mode-app:not(.is-mobile) .screen-package[data-screen="a1-cie-ok"].active .scroll-area,
-    body.mode-app:not(.is-mobile) .screen-package[data-screen="a3v"].active .scroll-area,
-    body.mode-app:not(.is-mobile) .screen-package[data-screen="a6"].active .scroll-area {
-      position: relative !important;        /* toglie l'ancoraggio absolute top:54px/bottom:0 che la teneva in cima */
-      top: auto !important;
-      bottom: auto !important;
-      inset: auto !important;
-      min-height: auto !important;          /* niente 100vh: la card non viene spinta in cima */
-      width: 100% !important;
-      padding-top: 24px !important;
-      padding-bottom: 24px !important;
     }
 
     @keyframes screenIn {
