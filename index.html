@@ -1826,17 +1826,9 @@
                   <div class="mood-reply" style="display:none;"></div>
                 </div>
                 <p class="section-kicker appt-kicker" data-i18n="nextAppointmentCaps"></p>
-                <div class="glass accent-card">
-                  <div class="meta" data-i18n="patientAppWhen"></div>
-                  <div class="main" data-i18n="patientAppTitle"></div>
-                  <div class="sub" data-i18n="patientAppWhere"></div>
-                </div>
-                <div class="glass accent-card"><div class="meta" data-i18n="app2When"></div><div class="main" data-i18n="app2Title"></div><div class="sub" data-i18n="app2Where"></div></div>
-                <div class="glass accent-card"><div class="meta" data-i18n="app3When"></div><div class="main" data-i18n="app3Title"></div><div class="sub" data-i18n="app3Where"></div></div>
-                <div class="glass accent-card"><div class="meta" data-i18n="app4When"></div><div class="main" data-i18n="app4Title"></div><div class="sub" data-i18n="app4Where"></div></div>
+                <div id="homeAppts"></div>
                 <p class="section-kicker" data-i18n="farmaciOggiCaps"></p>
-                <div class="glass med-row"><span class="sq-check"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></span><span data-i18n="medDonePatient"></span></div>
-                <div class="glass med-row"><span class="sq-check"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></span><span data-i18n="medPendingPatient"></span></div>
+                <div id="homeMeds"></div>
                 </div>
                 <div class="tab-panel" data-panel="piano" hidden><p class="section-kicker" data-i18n="tabPlan"></p></div>
                 <div class="tab-panel" data-panel="messaggi" hidden><p class="section-kicker" data-i18n="tabMessages"></p></div>
@@ -3561,7 +3553,59 @@
     }
   });
 
+  // Genera appuntamenti e farmaci della Home a7 da PATIENT_DATA.
+  // Aspetto identico al markup precedente (stesse classi glass/accent-card/med-row/sq-check).
+  function renderPatientData() {
+    var L = (document.documentElement.lang === "en") ? "en" : "it";
+
+    // --- Appuntamenti (sintesi Home: primi 3; dettaglio completo nel Piano) ---
+    var apptHost = document.getElementById("homeAppts");
+    if (apptHost) {
+      apptHost.innerHTML = "";
+      PATIENT_DATA.appointments.slice(0, 3).forEach(function (app) {
+        var card = document.createElement("div");
+        card.className = "glass accent-card";
+        var meta = document.createElement("div");
+        meta.className = "meta";
+        meta.textContent = (L === "en") ? app.whenEn : app.when;
+        var main = document.createElement("div");
+        main.className = "main";
+        main.textContent = (L === "en") ? app.titleEn : app.title;
+        var sub = document.createElement("div");
+        sub.className = "sub";
+        sub.textContent = (L === "en") ? app.whereEn : app.where;
+        card.appendChild(meta);
+        card.appendChild(main);
+        card.appendChild(sub);
+        apptHost.appendChild(card);
+      });
+    }
+
+    // --- Farmaci (sintesi Home: solo la mattina) ---
+    var medHost = document.getElementById("homeMeds");
+    if (medHost) {
+      medHost.innerHTML = "";
+      PATIENT_DATA.meds.filter(function (m) { return m.slot === "mattina"; }).forEach(function (med) {
+        var row = document.createElement("div");
+        row.className = med.taken ? "glass med-row done" : "glass med-row";
+        row.setAttribute("data-med-id", med.id);
+        // markup fisso della spunta (identico alle med-row attuali); i dati via textContent
+        var check = document.createElement("span");
+        check.className = "sq-check";
+        check.innerHTML = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>';
+        var label = document.createElement("span");
+        label.textContent = med.name + " · " + med.slot + " · " + med.time;
+        row.appendChild(check);
+        row.appendChild(label);
+        // mantiene il toggle "done" al click come le med-row originali
+        row.addEventListener("click", function () { row.classList.toggle("done"); });
+        medHost.appendChild(row);
+      });
+    }
+  }
+
   applyLanguage("it");
+  renderPatientData();
 })();
   </script>
 </body>
