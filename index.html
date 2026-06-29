@@ -680,6 +680,10 @@
       background: var(--accent);
       border-color: var(--accent);
     }
+    /* ===== Piano — farmaci per fascia oraria ===== */
+    .plan-subhead { font-size: 13px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted2); margin: 18px 0 10px; }
+    .plan-slot-label { font-size: 14px; font-weight: 650; color: var(--muted); margin: 14px 0 8px; }
+    .med-undo { font-size: 12px; color: var(--accent); cursor: pointer; margin-left: auto; padding-left: 12px; white-space: nowrap; text-decoration: none; }
 
     /* tab bar */
     .tab-bar {
@@ -1830,7 +1834,11 @@
                 <p class="section-kicker" data-i18n="farmaciOggiCaps"></p>
                 <div id="homeMeds"></div>
                 </div>
-                <div class="tab-panel" data-panel="piano" hidden><p class="section-kicker" data-i18n="tabPlan"></p></div>
+                <div class="tab-panel" data-panel="piano" hidden>
+                  <p class="section-kicker" data-i18n="tabPlan"></p>
+                  <p class="plan-subhead" data-i18n="planMedsTitle"></p>
+                  <div id="planMeds"></div>
+                </div>
                 <div class="tab-panel" data-panel="messaggi" hidden><p class="section-kicker" data-i18n="tabMessages"></p></div>
                 <div class="tab-panel" data-panel="profilo" hidden><p class="section-kicker" data-i18n="tabProfile"></p></div>
               </div>
@@ -3097,6 +3105,11 @@
       tabPlan: "Piano",
       tabMessages: "Messaggi",
       tabProfile: "Profilo",
+      planMedsTitle: "Farmaci del giorno",
+      planSlotMorning: "Mattina",
+      planSlotAfternoon: "Pomeriggio",
+      planSlotEvening: "Sera",
+      markNotTaken: "Segna come non preso",
       coachHint: "Tocca per continuare",
       coachDay: "Qui vedi i giorni dalla tua dimissione protetta, per restare sempre aggiornato. È un dato condiviso con il tuo caregiver e con il personale medico che ti ha in cura.",
       coachProfile: "Qui trovi il tuo profilo con le tue informazioni personali.",
@@ -3317,6 +3330,11 @@
       tabPlan: "Plan",
       tabMessages: "Messages",
       tabProfile: "Profile",
+      planMedsTitle: "Daily medication",
+      planSlotMorning: "Morning",
+      planSlotAfternoon: "Afternoon",
+      planSlotEvening: "Evening",
+      markNotTaken: "Mark as not taken",
       coachHint: "Tap to continue",
       coachDay: "Here you can see the days since your protected discharge, so you always stay up to date. This information is shared with your caregiver and the medical staff caring for you.",
       coachProfile: "Here you'll find your profile with your personal information.",
@@ -3615,6 +3633,63 @@
           row.classList.add("done");
         });
         medHost.appendChild(row);
+      });
+    }
+
+    // --- Piano: farmaci del giorno divisi per fascia oraria ---
+    // Stato persistente (PATIENT_DATA.taken come fonte di verità). Dal Piano si
+    // può correggere: click sulla riga = "segna come preso"; link med-undo =
+    // "segna come non preso". Ogni modifica richiama renderPatientData() così
+    // Piano e Home si rigenerano insieme e restano sincronizzati.
+    var planHost = document.getElementById("planMeds");
+    if (planHost) {
+      planHost.innerHTML = "";
+      var slots = [
+        { key: "mattina",    labelKey: "planSlotMorning" },
+        { key: "pomeriggio", labelKey: "planSlotAfternoon" },
+        { key: "sera",       labelKey: "planSlotEvening" }
+      ];
+      slots.forEach(function (slot) {
+        var meds = PATIENT_DATA.meds.filter(function (m) { return m.slot === slot.key; });
+        if (!meds.length) return;
+        var slotLabel = document.createElement("div");
+        slotLabel.className = "plan-slot-label";
+        slotLabel.textContent = STRINGS[L][slot.labelKey];
+        planHost.appendChild(slotLabel);
+        meds.forEach(function (med) {
+          var row = document.createElement("div");
+          row.className = med.taken ? "glass med-row done" : "glass med-row";
+          row.setAttribute("data-med-id", med.id);
+          var check = document.createElement("span");
+          check.className = "sq-check";
+          check.innerHTML = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>';
+          var label = document.createElement("span");
+          label.textContent = med.name + " · " + med.time;
+          row.appendChild(check);
+          row.appendChild(label);
+          if (med.taken) {
+            // "Segna come non preso": corregge l'errore e fa riapparire il farmaco in Home
+            var undo = document.createElement("span");
+            undo.className = "med-undo";
+            undo.setAttribute("data-i18n-dyn", "markNotTaken");
+            undo.textContent = STRINGS[L].markNotTaken;
+            undo.addEventListener("click", function (e) {
+              e.stopPropagation();
+              med.taken = false;
+              var idx = sessionTakenIds.indexOf(med.id);
+              if (idx !== -1) sessionTakenIds.splice(idx, 1);
+              renderPatientData();
+            });
+            row.appendChild(undo);
+          }
+          // Click sulla riga (parte non-undo) quando non preso: segna come preso
+          row.addEventListener("click", function () {
+            if (med.taken) return;
+            med.taken = true;
+            renderPatientData();
+          });
+          planHost.appendChild(row);
+        });
       });
     }
   }
