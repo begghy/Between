@@ -3460,23 +3460,22 @@
       relation: "Figlio",
       phone: "+39 327 456 7890"
     },
-    meds: {
-      morning: [
-        { name: "Acetilsalicilico 100 mg", time: "08:00", taken: false },
-        { name: "Atorvastatina 40 mg", time: "08:30", taken: false },
-        { name: "Losartan 50 mg", time: "08:00", taken: false }
-      ],
-      afternoon: [
-        { name: "Acetilsalicilico 100 mg", time: "14:00", taken: false }
-      ],
-      evening: [
-        { name: "Atorvastatina 40 mg", time: "20:30", taken: false }
-      ]
-    },
+    meds: [
+      { id: "m1", name: "Acetilsalicilico 100 mg", slot: "mattina", time: "08:00", taken: true },
+      { id: "m2", name: "Atorvastatina 40 mg", slot: "mattina", time: "08:30", taken: false },
+      { id: "m3", name: "Losartan 50 mg", slot: "mattina", time: "08:00", taken: false },
+      { id: "m4", name: "Acetilsalicilico 100 mg", slot: "pomeriggio", time: "14:00", taken: false },
+      { id: "m5", name: "Ramipril 5 mg", slot: "sera", time: "20:00", taken: false }
+    ],
     appointments: [
-      { date: "19 marzo 2026", time: "09:00", title: "Valutazione Riabilitativa", location: "Centro Riabilitativo Nord, Padova", accompaniment: false },
-      { date: "26 marzo 2026", time: "10:30", title: "Visita Neurologica", location: "ULSS 6 Euganea - Reparto C", accompaniment: true },
-      { date: "02 aprile 2026", time: "14:00", title: "Esami sangue follow-up", location: "Laboratorio ULSS 6 Euganea", accompaniment: false }
+      { id: "a1", when: "Domani · 10:30", whenEn: "Tomorrow · 10:30", title: "Visita neurologica di controllo", titleEn: "Neurology follow-up visit", where: "ULSS 6 Euganea · Pad. C, piano 2", whereEn: "ULSS 6 Euganea · Bldg C, 2nd floor", accompaniment: true },
+      { id: "a2", when: "Gio 14 · 15:00", whenEn: "Thu 14 · 3:00 PM", title: "Seduta di fisioterapia", titleEn: "Physiotherapy session", where: "Centro Riabilitativo ULSS 6 · Sala 3", whereEn: "ULSS 6 Rehab Centre · Room 3", accompaniment: false },
+      { id: "a3", when: "Lun 18 · 08:00", whenEn: "Mon 18 · 8:00 AM", title: "Prelievo · controllo terapia", titleEn: "Blood test · therapy check", where: "Punto prelievi ULSS 6 · Distretto 1", whereEn: "ULSS 6 sampling point · District 1", accompaniment: false },
+      { id: "a4", when: "Mer 20 · 11:00", whenEn: "Wed 20 · 11:00 AM", title: "Valutazione logopedica", titleEn: "Speech therapy assessment", where: "Poliambulatorio · Pad. B, piano 1", whereEn: "Outpatient clinic · Bldg B, floor 1", accompaniment: false }
+    ],
+    caregiverProposals: [
+      { id: "p1", when: "Sab 16 · 09:30", whenEn: "Sat 16 · 9:30 AM", title: "Controllo pressione a casa", titleEn: "Blood pressure check at home", where: "Proposto da Marco (figlio)", whereEn: "Suggested by Marco (son)" },
+      { id: "p2", when: "Ven 22 · 16:00", whenEn: "Fri 22 · 4:00 PM", title: "Visita dal medico di base", titleEn: "Visit to family doctor", where: "Proposto da Marco (figlio)", whereEn: "Suggested by Marco (son)" }
     ],
     messages: [
       { date: "12 marzo 2026, 16:45", author: "Dr. Bianchi", role: "Neurologo", fromPatient: false, text: "Buongiorno Elena, il suo accesso a Between è attivo. Qui può vedere il piano di cura e scrivermi per qualunque dubbio. Il primo controllo è il 26 marzo.", read: true },
