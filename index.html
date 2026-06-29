@@ -3553,6 +3553,10 @@
     }
   });
 
+  // Id dei farmaci spuntati in questa sessione: li tiene visibili (barrati) in Home
+  // anche dopo che taken è diventato true, finché l'utente non esce e rientra.
+  var sessionTakenIds = [];
+
   // Genera appuntamenti e farmaci della Home a7 da PATIENT_DATA.
   // Aspetto identico al markup precedente (stesse classi glass/accent-card/med-row/sq-check).
   function renderPatientData() {
@@ -3581,11 +3585,16 @@
       });
     }
 
-    // --- Farmaci (sintesi Home: solo la mattina) ---
+    // --- Farmaci (sintesi Home: solo la mattina ancora da prendere) ---
+    // Mostra i farmaci della mattina non presi; quelli spuntati ORA restano
+    // visibili (barrati) perché il loro id è in sessionTakenIds, finché non si
+    // esce e rientra. Lo stato "preso" è persistente in PATIENT_DATA (taken).
     var medHost = document.getElementById("homeMeds");
     if (medHost) {
       medHost.innerHTML = "";
-      PATIENT_DATA.meds.filter(function (m) { return m.slot === "mattina"; }).forEach(function (med) {
+      PATIENT_DATA.meds.filter(function (m) {
+        return m.slot === "mattina" && (m.taken === false || sessionTakenIds.indexOf(m.id) !== -1);
+      }).forEach(function (med) {
         var row = document.createElement("div");
         row.className = med.taken ? "glass med-row done" : "glass med-row";
         row.setAttribute("data-med-id", med.id);
@@ -3597,8 +3606,14 @@
         label.textContent = med.name + " · " + med.slot + " · " + med.time;
         row.appendChild(check);
         row.appendChild(label);
-        // mantiene il toggle "done" al click come le med-row originali
-        row.addEventListener("click", function () { row.classList.toggle("done"); });
+        // Spunta persistente e irreversibile dalla Home: si può segnare come
+        // preso una sola volta; un secondo click non fa nulla.
+        row.addEventListener("click", function () {
+          if (med.taken) return;
+          med.taken = true;                 // fonte di verità persistente
+          sessionTakenIds.push(med.id);     // tienilo visibile fino a uscita/rientro
+          row.classList.add("done");
+        });
         medHost.appendChild(row);
       });
     }
