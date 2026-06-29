@@ -967,22 +967,32 @@
       overflow: visible !important;
     }
 
-    /* Schermate corte di conferma/lettura: su desktop restano centrate verticalmente
-       invece di partire dall'alto, così non vengono tagliate in cima. */
-    body.mode-app:not(.is-mobile) .screen-package[data-screen="a1-spid-ok"].active,
-    body.mode-app:not(.is-mobile) .screen-package[data-screen="a1-cie"].active,
-    body.mode-app:not(.is-mobile) .screen-package[data-screen="a1-cie-ok"].active,
-    body.mode-app:not(.is-mobile) .screen-package[data-screen="a3v"].active,
-    body.mode-app:not(.is-mobile) .screen-package[data-screen="a6"].active {
-      align-items: center !important;   /* centra il contenuto sull'asse verticale */
+    /* Schermate corte di conferma/lettura: su desktop centrate verticalmente.
+       L'iphone-frame (alto 100vh) fa da contenitore flex centrante; i figli
+       perdono il min-height:100vh così il contenuto può stare al centro. */
+    body.mode-app:not(.is-mobile) .screen-package[data-screen="a1-spid-ok"].active .iphone-frame,
+    body.mode-app:not(.is-mobile) .screen-package[data-screen="a1-cie"].active .iphone-frame,
+    body.mode-app:not(.is-mobile) .screen-package[data-screen="a1-cie-ok"].active .iphone-frame,
+    body.mode-app:not(.is-mobile) .screen-package[data-screen="a3v"].active .iphone-frame,
+    body.mode-app:not(.is-mobile) .screen-package[data-screen="a6"].active .iphone-frame {
+      display: flex !important;
+      flex-direction: column !important;
+      justify-content: center !important;   /* centra screen-inner sull'asse verticale */
+    }
+    body.mode-app:not(.is-mobile) .screen-package[data-screen="a1-spid-ok"].active .screen-inner,
+    body.mode-app:not(.is-mobile) .screen-package[data-screen="a1-cie"].active .screen-inner,
+    body.mode-app:not(.is-mobile) .screen-package[data-screen="a1-cie-ok"].active .screen-inner,
+    body.mode-app:not(.is-mobile) .screen-package[data-screen="a3v"].active .screen-inner,
+    body.mode-app:not(.is-mobile) .screen-package[data-screen="a6"].active .screen-inner {
+      min-height: auto !important;          /* non più 100vh: così non occupa tutta l'altezza */
+      flex: 0 0 auto !important;
     }
     body.mode-app:not(.is-mobile) .screen-package[data-screen="a1-spid-ok"].active .scroll-area,
     body.mode-app:not(.is-mobile) .screen-package[data-screen="a1-cie"].active .scroll-area,
     body.mode-app:not(.is-mobile) .screen-package[data-screen="a1-cie-ok"].active .scroll-area,
     body.mode-app:not(.is-mobile) .screen-package[data-screen="a3v"].active .scroll-area,
     body.mode-app:not(.is-mobile) .screen-package[data-screen="a6"].active .scroll-area {
-      min-height: 100vh !important;     /* occupa tutta l'altezza così il centraggio ha spazio reale */
-      justify-content: center !important;
+      min-height: auto !important;          /* niente 100vh: la card non viene spinta in cima */
       padding-top: 24px !important;
       padding-bottom: 24px !important;
     }
