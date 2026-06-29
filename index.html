@@ -912,11 +912,11 @@
     /* DESKTOP app mode: sito web pulito — colonna centrata 480px, niente telefono */
     body.mode-app:not(.is-mobile) .screen-package.active {
       display: flex !important;
-      flex-direction: row !important;        /* FIX: era column ereditato, invertiva gli assi */
+      flex-direction: column !important;     /* colonna: asse verticale = main axis */
       position: fixed !important;
       inset: 0 !important;
-      align-items: flex-start !important;   /* torna a flex-start; il centraggio lo fa margin:auto sul frame */
-      justify-content: center !important;    /* colonna centrata orizzontalmente (asse orizzontale in row) */
+      align-items: center !important;        /* centra orizzontalmente la colonna */
+      justify-content: center !important;    /* centra verticalmente se il contenuto è più corto della finestra */
       padding: 0 !important;
       background: #0e2038 !important; /* TEST: colore piatto unico per escludere artefatti da gradiente/blend */
       overflow-y: auto !important;
@@ -942,8 +942,6 @@
       background: transparent !important;   /* solo box di layout: lo sfondo è il gradiente full-screen del contenitore */
       flex: 0 0 auto !important;   /* contenitore di sfondo largo, non si comprime */
       overflow: visible !important;   /* nessun clip che possa disegnare un bordo */
-      margin-top: auto !important;     /* con margin-bottom auto centra il frame se c'è spazio, ma permette lo scroll se eccede */
-      margin-bottom: auto !important;
     }
     body.mode-app:not(.is-mobile) .screen-package.active .screen-inner {
       position: relative !important;  /* non più absolute inset:10px */
