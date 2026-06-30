@@ -721,19 +721,19 @@
 
     .timeline-track {
       position: relative;
-      height: 280px;
+      height: 380px;
       min-width: 3400px;   /* arco di 6 mesi: track largo per dare respiro ai mesi fitti; oltre si scrolla */
     }
 
     /* asse centrale orizzontale */
     .timeline-axis {
-      position: absolute; top: 140px; left: 0; right: 0;
+      position: absolute; top: 190px; left: 0; right: 0;
       height: 1px; background: rgba(255,255,255,0.14);
     }
 
     /* tick dei mesi: nuvola glass sopra l'asse */
     .timeline-monthtick {
-      position: absolute; top: 124px; transform: translateX(-50%);
+      position: absolute; top: 174px; transform: translateX(-50%);
       font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase;
       color: var(--muted); white-space: nowrap;
       background: rgba(255,255,255,0.06);
@@ -756,8 +756,8 @@
       display: flex; flex-direction: column; align-items: center; gap: 6px;
       transition: transform .16s ease;
     }
-    .timeline-event.ev-above { bottom: 152px; }  /* sopra l'asse (asse a 140) */
-    .timeline-event.ev-below { top: 152px; }      /* sotto l'asse */
+    .timeline-event.ev-above { bottom: 202px; }  /* sopra l'asse (asse a 190) */
+    .timeline-event.ev-below { top: 202px; }      /* sotto l'asse */
 
     /* stelo che collega l'evento all'asse */
     .timeline-event::after {
@@ -3952,7 +3952,7 @@
       var lastAbovePct = -999, lastBelowPct = -999;
       var aboveLevel = 0, belowLevel = 0;
       var MIN_GAP = 3.2;   // % sotto cui due eventi sulla stessa fila sono "vicini"
-      var STEP = 58;       // px di scalino verticale per livello
+      var STEP = 44;       // px di scalino verticale per livello
       sorted.forEach(function (app, i) {
         var t = new Date(app.datetime).getTime();
         var leftPct = pct(t);
@@ -3966,12 +3966,12 @@
           if (leftPct - lastAbovePct < MIN_GAP) { aboveLevel++; } else { aboveLevel = 0; }
           lastAbovePct = leftPct;
           offset = aboveLevel * STEP;
-          ev.style.bottom = (152 + offset) + "px";   // sovrascrive bottom:152 del CSS, sale
+          ev.style.bottom = (202 + offset) + "px";   // sovrascrive bottom:202 del CSS, sale
         } else {
           if (leftPct - lastBelowPct < MIN_GAP) { belowLevel++; } else { belowLevel = 0; }
           lastBelowPct = leftPct;
           offset = belowLevel * STEP;
-          ev.style.top = (152 + offset) + "px";       // sovrascrive top:152 del CSS, scende
+          ev.style.top = (202 + offset) + "px";       // sovrascrive top:202 del CSS, scende
         }
         // con offset lo stelo non raggiungerebbe l'asse: lo nascondo (niente steli storti)
         if (offset > 0) ev.classList.add("ev-offset");
