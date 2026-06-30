@@ -1586,6 +1586,25 @@
     .msg-bubble{padding:11px 14px;border-radius:18px;font-size:15px;line-height:1.45;color:var(--text);border:1px solid rgba(255,255,255,var(--glass-border));}
     .msg-item.from-doctor .msg-bubble{background:var(--glass);border-bottom-left-radius:6px;}
     .msg-item.from-patient .msg-bubble{background:rgba(74,127,212,.22);border-bottom-right-radius:6px;}
+    /* Messaggi — inbox conversazioni */
+    #msgConvoList{display:flex;flex-direction:column;gap:10px;margin-top:8px;}
+    .msg-convo{display:flex;align-items:center;gap:12px;padding:12px 14px;cursor:pointer;}
+    .msg-avatar{width:42px;height:42px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:650;color:var(--text);background:var(--glass);border:1px solid rgba(255,255,255,var(--glass-border));}
+    .msg-avatar.is-bot{background:rgba(74,127,212,.22);border-color:var(--accent);}
+    .msg-convo-body{flex:1;min-width:0;}
+    .msg-convo-top{display:flex;align-items:baseline;justify-content:space-between;gap:8px;}
+    .msg-convo-name{font-size:15px;font-weight:600;color:var(--text);}
+    .msg-convo-time{font-size:11px;color:var(--muted2);flex-shrink:0;white-space:nowrap;}
+    .msg-convo-preview{font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:3px;}
+    .msg-unread{width:9px;height:9px;border-radius:50%;background:var(--accent);flex-shrink:0;}
+    /* Messaggi — header chat */
+    .msg-chat-view{display:flex;flex-direction:column;}
+    .msg-thread-header{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+    .msg-back{width:32px;height:32px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:none;border:none;color:var(--text);cursor:pointer;padding:0;}
+    .msg-back svg{width:22px;height:22px;}
+    .msg-thread-peer{display:flex;align-items:center;gap:10px;min-width:0;}
+    .msg-peer-name{font-size:16px;font-weight:650;color:var(--text);}
+    .msg-peer-role{font-size:12px;color:var(--muted);}
   </style>
 </head>
 <body>
@@ -1974,9 +1993,26 @@
                   <div id="planTimeline" class="appt-timeline" aria-hidden="true"></div>
                 </div>
                 <div class="tab-panel" data-panel="messaggi" hidden>
-                  <p class="section-kicker" data-i18n="tabMessages"></p>
-                  <p class="plan-subhead" data-i18n="messagesSubhead"></p>
-                  <div id="msgThread" class="msg-thread"></div>
+                  <div id="msgInbox" class="msg-inbox-view">
+                    <p class="section-kicker" data-i18n="tabMessages"></p>
+                    <p class="plan-subhead" data-i18n="messagesSubhead"></p>
+                    <div id="msgConvoList"></div>
+                  </div>
+                  <div id="msgChat" class="msg-chat-view" hidden>
+                    <div class="msg-thread-header">
+                      <button type="button" id="msgBackBtn" class="msg-back">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+                      </button>
+                      <div class="msg-thread-peer">
+                        <div class="msg-avatar" id="msgPeerAvatar"></div>
+                        <div>
+                          <div class="msg-peer-name" id="msgPeerName"></div>
+                          <div class="msg-peer-role" id="msgPeerRole"></div>
+                        </div>
+                      </div>
+                    </div>
+                    <div id="msgThread" class="msg-thread"></div>
+                  </div>
                 </div>
                 <div class="tab-panel" data-panel="profilo" hidden><p class="section-kicker" data-i18n="tabProfile"></p></div>
               </div>
@@ -3246,6 +3282,7 @@
       tabPlan: "Piano",
       tabMessages: "Messaggi",
       messagesSubhead: "Canale con il tuo team di cura",
+      msgBack: "Indietro",
       tabProfile: "Profilo",
       planMedsTitle: "Farmaci del giorno",
       planApptTitle: "Calendario Appuntamenti",
@@ -3474,6 +3511,7 @@
       tabPlan: "Plan",
       tabMessages: "Messages",
       messagesSubhead: "Channel with your care team",
+      msgBack: "Back",
       tabProfile: "Profile",
       planMedsTitle: "Daily medication",
       planApptTitle: "Appointments Calendar",
@@ -3647,10 +3685,28 @@
       { id: "p1", when: "Sab 16 · 09:30", whenEn: "Sat 16 · 9:30 AM", title: "Controllo pressione a casa", titleEn: "Blood pressure check at home", where: "Proposto da Marco (figlio)", whereEn: "Suggested by Marco (son)" },
       { id: "p2", when: "Ven 22 · 16:00", whenEn: "Fri 22 · 4:00 PM", title: "Visita dal medico di base", titleEn: "Visit to family doctor", where: "Proposto da Marco (figlio)", whereEn: "Suggested by Marco (son)" }
     ],
-    messages: [
-      { date: "12 marzo 2026, 16:45", author: "Dr. Bianchi", role: "Neurologo", fromPatient: false, text: "Buongiorno Elena, il suo accesso a Between è attivo. Qui può vedere il piano di cura e scrivermi per qualunque dubbio. Il primo controllo è il 26 marzo.", read: true },
-      { date: "13 marzo 2026, 10:15", author: "Dr. Bianchi", role: "Neurologo", fromPatient: false, text: "Come sta oggi? Qualche difficoltà con i farmaci? Mi faccia sapere.", read: true },
-      { date: "13 marzo 2026, 11:30", author: "Elena Colombo", role: "Paziente", fromPatient: true, text: "Bene, grazie. Nessun problema. Solo un po' di stanchezza.", read: true }
+    conversations: [
+      {
+        id: "caregiver", kind: "person", name: "Marco Colombo", role: "Figlio · Caregiver",
+        messages: [
+          { date: "20 giugno 2026, 18:20", author: "Marco Colombo", fromPatient: false, text: "Ciao mamma, ti ho aggiornato il calendario con la visita di luglio. Se ti serve qualcosa scrivimi pure qui." },
+          { date: "20 giugno 2026, 19:05", author: "Elena Colombo", fromPatient: true, text: "Grazie Marco. Per ora tutto a posto." }
+        ]
+      },
+      {
+        id: "doctor", kind: "person", name: "Dr. Bianchi", role: "Neurologo",
+        messages: [
+          { date: "12 marzo 2026, 16:45", author: "Dr. Bianchi", fromPatient: false, text: "Buongiorno Elena, il suo accesso a Between è attivo. Qui può vedere il piano di cura e scrivermi per qualunque dubbio. Il primo controllo è il 26 marzo." },
+          { date: "13 marzo 2026, 10:15", author: "Dr. Bianchi", fromPatient: false, text: "Come sta oggi? Qualche difficoltà con i farmaci? Mi faccia sapere." },
+          { date: "13 marzo 2026, 11:30", author: "Elena Colombo", fromPatient: true, text: "Bene, grazie. Nessun problema. Solo un po' di stanchezza." }
+        ]
+      },
+      {
+        id: "mybetween", kind: "bot", name: "My-Between", role: "Assistente ULSS 6 Euganea",
+        messages: [
+          { date: "Oggi", author: "My-Between", fromPatient: false, text: "Salve Elena, sono My-Between, l'assistente digitale della sua ULSS. Posso aiutarla con farmaci, appuntamenti, documenti del Fascicolo, oppure metterla in contatto con un operatore. Come posso aiutarla?" }
+        ]
+      }
     ],
     mood: [
       { date: "12 marzo 2026", emoji: "😌", note: "Tranquilla" },
@@ -4030,11 +4086,23 @@
     }
     renderMessages();
   }
-  function renderMessages(){
+  var openConvoId = null;
+
+  function msgInitials(name){
+    var t = name.replace(/-/g, " ").trim().split(/\s+/);
+    return ((t[0] ? t[0][0] : "") + (t[1] ? t[1][0] : "")).toUpperCase();
+  }
+
+  function msgFindConvo(id){
+    return (PATIENT_DATA.conversations || []).filter(function(c){ return c.id === id; })[0];
+  }
+
+  function renderThread(id){
+    var c = msgFindConvo(id);
     var host = document.getElementById("msgThread");
-    if(!host) return;
+    if(!c || !host) return;
     host.innerHTML = "";
-    PATIENT_DATA.messages.forEach(function(m){
+    c.messages.forEach(function(m){
       var item = document.createElement("div");
       item.className = "msg-item " + (m.fromPatient ? "from-patient" : "from-doctor");
       var meta = document.createElement("div");
@@ -4047,6 +4115,87 @@
       item.appendChild(bubble);
       host.appendChild(item);
     });
+    host.scrollTop = host.scrollHeight;
+  }
+
+  function openConversation(id){
+    var c = msgFindConvo(id);
+    if(!c) return;
+    openConvoId = id;
+    if(c.unread) c.unread = false;
+    var inboxView = document.getElementById("msgInbox");
+    var chatView = document.getElementById("msgChat");
+    if(inboxView) inboxView.hidden = true;
+    if(chatView) chatView.hidden = false;
+    var av = document.getElementById("msgPeerAvatar");
+    if(av){ av.className = "msg-avatar" + (c.kind === "bot" ? " is-bot" : ""); av.textContent = msgInitials(c.name); }
+    var nm = document.getElementById("msgPeerName"); if(nm) nm.textContent = c.name;
+    var rl = document.getElementById("msgPeerRole"); if(rl) rl.textContent = c.role;
+    renderThread(id);
+  }
+
+  function closeConversation(){
+    openConvoId = null;
+    var inboxView = document.getElementById("msgInbox");
+    var chatView = document.getElementById("msgChat");
+    if(chatView) chatView.hidden = true;
+    if(inboxView) inboxView.hidden = false;
+    renderMessages();
+  }
+
+  function renderMessages(){
+    var inbox = document.getElementById("msgConvoList");
+    if(!inbox) return;
+    var L = (document.documentElement.lang === "en") ? "en" : "it";
+    var convos = PATIENT_DATA.conversations || [];
+
+    inbox.innerHTML = "";
+    convos.forEach(function(c){
+      var card = document.createElement("div");
+      card.className = "glass msg-convo";
+      card.setAttribute("data-convo-id", c.id);
+
+      var av = document.createElement("div");
+      av.className = "msg-avatar" + (c.kind === "bot" ? " is-bot" : "");
+      av.textContent = msgInitials(c.name);
+
+      var body = document.createElement("div");
+      body.className = "msg-convo-body";
+      var top = document.createElement("div");
+      top.className = "msg-convo-top";
+      var name = document.createElement("span");
+      name.className = "msg-convo-name";
+      name.textContent = c.name;
+      var time = document.createElement("span");
+      time.className = "msg-convo-time";
+      var last = c.messages[c.messages.length - 1];
+      time.textContent = last ? last.date : "";
+      top.appendChild(name);
+      top.appendChild(time);
+      var preview = document.createElement("div");
+      preview.className = "msg-convo-preview";
+      preview.textContent = last ? last.text : c.role;
+      body.appendChild(top);
+      body.appendChild(preview);
+
+      card.appendChild(av);
+      card.appendChild(body);
+      if(c.unread){
+        var dot = document.createElement("span");
+        dot.className = "msg-unread";
+        card.appendChild(dot);
+      }
+      card.addEventListener("click", function(){ openConversation(c.id); });
+      inbox.appendChild(card);
+    });
+
+    var backBtn = document.getElementById("msgBackBtn");
+    if(backBtn){
+      if(!backBtn.dataset.ready){ backBtn.dataset.ready = "1"; backBtn.addEventListener("click", closeConversation); }
+      backBtn.setAttribute("aria-label", STRINGS[L].msgBack);
+    }
+
+    if(openConvoId) renderThread(openConvoId);
   }
   // esposta globale: switchTab vive in un'altra IIFE e la richiama via window
   window.renderPatientData = renderPatientData;
