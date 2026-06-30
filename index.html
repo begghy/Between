@@ -692,6 +692,27 @@
     .proposal-btn{flex:1;padding:9px;border-radius:12px;border:none;font-size:13px;font-weight:600;cursor:pointer;}
     .proposal-accept{background:var(--accent);color:#fff;}
     .proposal-reject{background:var(--glass);color:var(--text);border:1px solid rgba(255,255,255,var(--glass-border));}
+    /* Profilo */
+    .profile-id{text-align:center;padding:20px 16px;margin-bottom:8px;}
+    .profile-avatar{width:72px;height:72px;border-radius:50%;margin:0 auto 12px;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:700;color:#fff;background:linear-gradient(135deg,var(--accent),#7aa6e6);}
+    .profile-id-name{font-size:20px;font-weight:700;color:var(--text);}
+    .profile-id-sub{font-size:13px;color:var(--muted);margin-top:2px;}
+    .profile-verified{display:inline-flex;align-items:center;gap:6px;margin-top:10px;font-size:12px;color:#3aa76d;}
+    .profile-verified svg{width:15px;height:15px;}
+    .profile-card{padding:2px 16px;margin-bottom:10px;}
+    .profile-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;}
+    .profile-row + .profile-row{border-top:1px solid rgba(255,255,255,.06);}
+    .profile-row-key{font-size:13px;color:var(--muted);}
+    .profile-row-label{font-size:14px;color:var(--text);}
+    .profile-row-value{font-size:14px;color:var(--text);font-weight:500;text-align:right;}
+    .profile-link{display:flex;align-items:center;justify-content:space-between;width:100%;gap:12px;padding:13px 0;background:none;border:none;color:var(--text);font-size:14px;cursor:pointer;text-align:left;}
+    .profile-link + .profile-link{border-top:1px solid rgba(255,255,255,.06);}
+    .profile-link svg{width:18px;height:18px;color:var(--muted2);flex-shrink:0;}
+    .profile-switch{width:44px;height:26px;border-radius:13px;border:none;background:rgba(255,255,255,.15);cursor:pointer;position:relative;flex-shrink:0;transition:background .2s;}
+    .profile-switch::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .2s;}
+    .profile-switch.on{background:var(--accent);}
+    .profile-switch.on::after{transform:translateX(18px);}
+    .profile-logout{width:100%;padding:13px;border-radius:14px;border:1px solid rgba(229,72,77,.4);background:rgba(229,72,77,.12);color:#e5484d;font-size:14px;font-weight:600;cursor:pointer;margin:6px 0 8px;}
     .med-name { font-size: 16px; font-weight: 500; }
     .med-undo { font-size: 14px; font-weight: 600; color: var(--accent); cursor: pointer; margin-left: auto; padding-left: 12px; white-space: nowrap; text-decoration: none; display: inline-block; }
     .med-row.done .med-undo { opacity: 1 !important; color: var(--accent) !important; font-weight: 600; }
@@ -1665,6 +1686,7 @@
     <button type="button" class="ham-item" data-tab="home"><span data-i18n="tabHome"></span></button>
     <button type="button" class="ham-item" data-tab="piano"><span data-i18n="tabPlan"></span></button>
     <button type="button" class="ham-item" data-tab="messaggi"><span data-i18n="tabMessages"></span></button>
+    <button type="button" class="ham-item" data-tab="profilo"><span data-i18n="tabProfile"></span></button>
   </nav>
 
   <div class="lang-toggle" role="group" aria-label="Lingua">
@@ -2010,7 +2032,7 @@
                     <div style="font-size:26px;font-weight:750;letter-spacing:-0.03em;" data-i18n="helloMario"></div>
                     <div style="font-size:14px;color:var(--muted);margin-top:4px;" data-i18n="dayCount"></div>
                   </div>
-                  <div class="avatar-round">MR</div>
+                  <div class="avatar-round">EC</div>
                 </div>
                 <p class="section-kicker" data-i18n="howFeelingCaps"></p>
                 <div class="mood-block">
@@ -2098,7 +2120,47 @@
                     </div>
                   </div>
                 </div>
-                <div class="tab-panel" data-panel="profilo" hidden><p class="section-kicker" data-i18n="tabProfile"></p></div>
+                <div class="tab-panel" data-panel="profilo" hidden>
+                  <p class="section-kicker" data-i18n="tabProfile"></p>
+                  <div class="glass profile-id">
+                    <div class="profile-avatar" id="profileAvatar"></div>
+                    <div class="profile-id-name" id="profileName"></div>
+                    <div class="profile-id-sub" data-i18n="profileRoleLine"></div>
+                    <div class="profile-verified">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9 12l2 2 4-4"/></svg>
+                      <span data-i18n="profileVerified"></span>
+                    </div>
+                  </div>
+                  <p class="plan-subhead" data-i18n="profileDataTitle"></p>
+                  <div class="glass profile-card">
+                    <div class="profile-row"><span class="profile-row-key" data-i18n="profileDob"></span><span class="profile-row-value" id="pfDob"></span></div>
+                    <div class="profile-row"><span class="profile-row-key" data-i18n="profileFiscal"></span><span class="profile-row-value" id="pfFiscal"></span></div>
+                    <div class="profile-row"><span class="profile-row-key" data-i18n="profileDiagnosis"></span><span class="profile-row-value" id="pfDiag"></span></div>
+                    <div class="profile-row"><span class="profile-row-key" data-i18n="profileWard"></span><span class="profile-row-value" id="pfWard"></span></div>
+                    <div class="profile-row"><span class="profile-row-key" data-i18n="profileDischarge"></span><span class="profile-row-value" id="pfDischarge"></span></div>
+                    <div class="profile-row"><span class="profile-row-key" data-i18n="profileCaregiver"></span><span class="profile-row-value" id="pfCaregiver"></span></div>
+                  </div>
+                  <p class="plan-subhead" data-i18n="profileSettingsTitle"></p>
+                  <div class="glass profile-card">
+                    <div class="profile-row"><span class="profile-row-label" data-i18n="profileNotif"></span><button type="button" class="profile-switch on" aria-pressed="true"></button></div>
+                    <div class="profile-row"><span class="profile-row-label" data-i18n="profileMedReminders"></span><button type="button" class="profile-switch on" aria-pressed="true"></button></div>
+                    <div class="profile-row"><span class="profile-row-label" data-i18n="profileShareData"></span><button type="button" class="profile-switch on" aria-pressed="true"></button></div>
+                    <div class="profile-row"><span class="profile-row-label" data-i18n="profileDarkMode"></span><button type="button" class="profile-switch on" aria-pressed="true"></button></div>
+                  </div>
+                  <p class="plan-subhead" data-i18n="profileSupportTitle"></p>
+                  <div class="glass profile-card">
+                    <button type="button" class="profile-link" data-action="help"><span data-i18n="profileHelpCenter"></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></button>
+                    <button type="button" class="profile-link" data-action="operator"><span data-i18n="profileContactOp"></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></button>
+                    <button type="button" class="profile-link" data-action="faq"><span data-i18n="profileFaq"></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></button>
+                    <button type="button" class="profile-link" data-action="privacy"><span data-i18n="profilePrivacy"></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></button>
+                  </div>
+                  <p class="plan-subhead" data-i18n="profileInfoTitle"></p>
+                  <div class="glass profile-card">
+                    <button type="button" class="profile-link" data-action="terms"><span data-i18n="profileTerms"></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></button>
+                    <div class="profile-row"><span class="profile-row-label" data-i18n="profileVersion"></span><span class="profile-row-value">1.0.0</span></div>
+                  </div>
+                  <button type="button" class="profile-logout" id="profileLogout" data-i18n="profileLogout"></button>
+                </div>
               </div>
               <nav class="tab-bar" aria-label="Tab">
                 <div class="tab on" data-tab="home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10.5L12 3l9 7.5V20a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1v-9.5z"/></svg><span data-i18n="tabHome"></span></div>
@@ -3340,7 +3402,7 @@
       welcomeTitle: "Sei pronto, Mario.",
       welcomeBody: "Il tuo percorso di cura inizia adesso. Between è qui con te, ogni giorno.",
       welcomeCta: "Inizia il tuo percorso",
-      helloMario: "Ciao, Mario.",
+      helloMario: "Ciao, Elena.",
       dayCount: "Giorno 2 dal rientro a casa",
       howFeelingCaps: "COME STAI OGGI?",
       moodSereno: "Sereno",
@@ -3383,6 +3445,29 @@
       msgSurveyQ: "Quanto è stato utile l'aiuto di My-Between?",
       msgSurveyThanks: "Grazie per il suo feedback. Ci aiuta a migliorare il servizio.",
       tabProfile: "Profilo",
+      profileRoleLine: "Paziente · ULSS 6 Euganea",
+      profileVerified: "Identità verificata con SPID",
+      profileDataTitle: "Dati personali",
+      profileDob: "Data di nascita",
+      profileFiscal: "Codice fiscale",
+      profileDiagnosis: "Diagnosi",
+      profileWard: "Reparto",
+      profileDischarge: "Dimissione",
+      profileCaregiver: "Caregiver collegato",
+      profileSettingsTitle: "Impostazioni",
+      profileNotif: "Notifiche push",
+      profileMedReminders: "Promemoria farmaci",
+      profileShareData: "Condividi dati col team di cura",
+      profileDarkMode: "Tema scuro",
+      profileSupportTitle: "Supporto",
+      profileHelpCenter: "Centro assistenza",
+      profileContactOp: "Contatta un operatore",
+      profileFaq: "Domande frequenti",
+      profilePrivacy: "Privacy e consensi FSE",
+      profileInfoTitle: "Informazioni",
+      profileTerms: "Termini e condizioni",
+      profileVersion: "Versione app",
+      profileLogout: "Esci",
       planMedsTitle: "Farmaci del giorno",
       planApptTitle: "Calendario Appuntamenti",
       planProposalsTitle: "Proposte dal caregiver",
@@ -3586,7 +3671,7 @@
       welcomeTitle: "You're ready, Mario.",
       welcomeBody: "Your care journey starts now. Between is here with you, every day.",
       welcomeCta: "Start your journey",
-      helloMario: "Hello, Mario.",
+      helloMario: "Hello, Elena.",
       dayCount: "Day 2 since returning home",
       howFeelingCaps: "HOW ARE YOU TODAY?",
       moodSereno: "Calm",
@@ -3629,6 +3714,29 @@
       msgSurveyQ: "How helpful was My-Between?",
       msgSurveyThanks: "Thanks for your feedback. It helps us improve the service.",
       tabProfile: "Profile",
+      profileRoleLine: "Patient · ULSS 6 Euganea",
+      profileVerified: "Identity verified with SPID",
+      profileDataTitle: "Personal details",
+      profileDob: "Date of birth",
+      profileFiscal: "Tax code",
+      profileDiagnosis: "Diagnosis",
+      profileWard: "Ward",
+      profileDischarge: "Discharge",
+      profileCaregiver: "Linked caregiver",
+      profileSettingsTitle: "Settings",
+      profileNotif: "Push notifications",
+      profileMedReminders: "Medication reminders",
+      profileShareData: "Share data with care team",
+      profileDarkMode: "Dark theme",
+      profileSupportTitle: "Support",
+      profileHelpCenter: "Help center",
+      profileContactOp: "Contact an operator",
+      profileFaq: "FAQ",
+      profilePrivacy: "Privacy and FSE consents",
+      profileInfoTitle: "About",
+      profileTerms: "Terms and conditions",
+      profileVersion: "App version",
+      profileLogout: "Log out",
       planMedsTitle: "Daily medication",
       planApptTitle: "Appointments Calendar",
       planProposalsTitle: "Caregiver proposals",
@@ -4201,6 +4309,7 @@
       }
     }
     renderMessages();
+    renderProfile();
   }
   var openConvoId = null;
 
@@ -4615,6 +4724,42 @@
       card.appendChild(actions);
       host.appendChild(card);
     });
+  }
+
+  function setupProfile(){
+    if(window.__profileWired) return;
+    window.__profileWired = true;
+    document.querySelectorAll('[data-panel="profilo"] .profile-switch').forEach(function(sw){
+      sw.addEventListener("click", function(){
+        var on = sw.classList.toggle("on");
+        sw.setAttribute("aria-pressed", on ? "true" : "false");
+      });
+    });
+    document.querySelectorAll('[data-panel="profilo"] .profile-link').forEach(function(lk){
+      lk.addEventListener("click", function(){
+        if(lk.getAttribute("data-action") === "operator" && window.switchTab) window.switchTab("messaggi");
+      });
+    });
+    var lo = document.getElementById("profileLogout");
+    if(lo) lo.addEventListener("click", function(){ location.hash = "a1"; });
+    var headerAv = document.querySelector('[data-screen="a7"] .header-row .avatar-round');
+    if(headerAv){ headerAv.style.cursor = "pointer"; headerAv.addEventListener("click", function(){ if(window.switchTab) window.switchTab("profilo"); }); }
+  }
+
+  function renderProfile(){
+    var p = PATIENT_DATA.profile;
+    if(!p) return;
+    var set = function(id, val){ var el = document.getElementById(id); if(el) el.textContent = val; };
+    var av = document.getElementById("profileAvatar");
+    if(av) av.textContent = msgInitials(p.name);
+    set("profileName", p.name);
+    set("pfDob", p.dob);
+    set("pfFiscal", p.fiscalCode);
+    set("pfDiag", p.diagnosis);
+    set("pfWard", p.ward);
+    set("pfDischarge", p.dischargeDate);
+    set("pfCaregiver", "Marco Colombo (figlio)");
+    setupProfile();
   }
 
   // esposta globale: switchTab vive in un'altra IIFE e la richiama via window
