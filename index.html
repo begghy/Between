@@ -1590,13 +1590,13 @@
     #msgConvoList{display:flex;flex-direction:column;gap:10px;margin-top:8px;}
     .msg-convo{display:flex;align-items:center;gap:12px;padding:12px 14px;cursor:pointer;}
     .msg-avatar{width:42px;height:42px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:650;color:var(--text);background:var(--glass);border:1px solid rgba(255,255,255,var(--glass-border));}
-    .msg-avatar.is-bot{background:rgba(74,127,212,.22);border-color:var(--accent);}
+    .msg-avatar.is-bot{background:linear-gradient(135deg,var(--accent),#7aa6e6);border-color:transparent;color:#fff;box-shadow:0 2px 12px rgba(74,127,212,.45);}
     .msg-convo-body{flex:1;min-width:0;}
     .msg-convo-top{display:flex;align-items:baseline;justify-content:space-between;gap:8px;}
     .msg-convo-name{font-size:15px;font-weight:600;color:var(--text);}
     .msg-convo-time{font-size:11px;color:var(--muted2);flex-shrink:0;white-space:nowrap;}
     .msg-convo-preview{font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:3px;}
-    .msg-unread{width:9px;height:9px;border-radius:50%;background:var(--accent);flex-shrink:0;}
+    .msg-convo.is-unread{border-color:rgba(74,127,212,.45);background:rgba(74,127,212,.10);box-shadow:0 0 0 1px rgba(74,127,212,.30),0 6px 24px rgba(74,127,212,.22);}
     /* Messaggi — header chat */
     .msg-chat-view:not([hidden]){display:flex;flex-direction:column;}
     .msg-thread-header{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
@@ -4208,11 +4208,7 @@
 
       card.appendChild(av);
       card.appendChild(body);
-      if(c.unread){
-        var dot = document.createElement("span");
-        dot.className = "msg-unread";
-        card.appendChild(dot);
-      }
+      if(c.unread) card.classList.add("is-unread");
       card.addEventListener("click", function(){ openConversation(c.id); });
       inbox.appendChild(card);
     });
