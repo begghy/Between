@@ -1621,6 +1621,15 @@
     .msg-help-label{flex:1;min-width:0;font-size:14px;}
     .msg-help-num{font-size:14px;font-weight:650;color:var(--accent);white-space:nowrap;font-variant-numeric:tabular-nums;}
     .msg-help-link{display:flex;align-items:center;gap:12px;margin-top:10px;padding-top:12px;border-top:1px solid rgba(255,255,255,.1);text-decoration:none;color:var(--accent);font-size:14px;font-weight:600;}
+    /* Messaggi — chip risposta rapida + typing */
+    .msg-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+    .msg-chip{padding:8px 14px;border-radius:18px;border:1px solid rgba(255,255,255,var(--glass-border));background:var(--glass);color:var(--text);font-size:13px;cursor:pointer;}
+    .msg-chip:active{transform:scale(.97);}
+    .msg-typing .msg-bubble{display:flex;align-items:center;gap:5px;padding:14px;}
+    .msg-typing-dot{width:7px;height:7px;border-radius:50%;background:var(--muted);display:inline-block;animation:msgBlink 1.2s infinite ease-in-out;}
+    .msg-typing-dot:nth-child(2){animation-delay:.2s;}
+    .msg-typing-dot:nth-child(3){animation-delay:.4s;}
+    @keyframes msgBlink{0%,80%,100%{opacity:.3;}40%{opacity:1;}}
   </style>
 </head>
 <body>
@@ -2055,6 +2064,12 @@
                       </div>
                     </div>
                     <div id="msgThread" class="msg-thread"></div>
+                    <div id="msgChips" class="msg-chips" hidden>
+                      <button type="button" class="msg-chip" data-q="I miei farmaci" data-i18n="msgChipMeds"></button>
+                      <button type="button" class="msg-chip" data-q="Prossimo appuntamento" data-i18n="msgChipAppt"></button>
+                      <button type="button" class="msg-chip" data-q="Documenti e FSE" data-i18n="msgChipDocs"></button>
+                      <button type="button" class="msg-chip" data-q="Parla con un operatore" data-i18n="msgChipOperator"></button>
+                    </div>
                     <div id="msgComposer" class="msg-composer">
                       <input type="text" id="msgInput" class="msg-input" data-i18n-placeholder="msgPlaceholder">
                       <button type="button" id="msgSend" class="msg-send">
@@ -3341,6 +3356,10 @@
       msgHelpUrp: "URP ULSS 6 Euganea",
       msgHelpDistrict: "Distretto Alta Padovana",
       msgHelpFse: "Apri il Fascicolo Sanitario Km Zero",
+      msgChipMeds: "I miei farmaci",
+      msgChipAppt: "Prossimo appuntamento",
+      msgChipDocs: "Documenti e FSE",
+      msgChipOperator: "Parla con un operatore",
       tabProfile: "Profilo",
       planMedsTitle: "Farmaci del giorno",
       planApptTitle: "Calendario Appuntamenti",
@@ -3578,6 +3597,10 @@
       msgHelpUrp: "URP ULSS 6 Euganea",
       msgHelpDistrict: "Alta Padovana District",
       msgHelpFse: "Open your Km Zero Health Record",
+      msgChipMeds: "My medication",
+      msgChipAppt: "Next appointment",
+      msgChipDocs: "Documents and FSE",
+      msgChipOperator: "Talk to an operator",
       tabProfile: "Profile",
       planMedsTitle: "Daily medication",
       planApptTitle: "Appointments Calendar",
@@ -4190,6 +4213,8 @@
     if(av){ av.className = "msg-avatar" + (c.kind === "bot" ? " is-bot" : ""); av.textContent = msgInitials(c.name); }
     var nm = document.getElementById("msgPeerName"); if(nm) nm.textContent = c.name;
     var rl = document.getElementById("msgPeerRole"); if(rl) rl.textContent = c.role;
+    var chips = document.getElementById("msgChips");
+    if(chips) chips.hidden = (c.kind !== "bot");
     renderThread(id);
   }
 
@@ -4209,24 +4234,111 @@
     return "Oggi, " + hh + ":" + mm;
   }
 
-  function sendMessage(){
-    var input = document.getElementById("msgInput");
-    if(!input || !openConvoId) return;
-    var text = input.value.trim();
+  function msgSubmit(text){
+    if(!openConvoId) return;
+    text = (text || "").trim();
     if(!text) return;
     var c = msgFindConvo(openConvoId);
     if(!c) return;
     c.messages.push({ date: msgNow(), author: "Elena Colombo", fromPatient: true, text: text });
-    input.value = "";
     renderThread(openConvoId);
+    if(openConvoId === "mybetween") botRespond(text);
+  }
+
+  function sendMessage(){
+    var input = document.getElementById("msgInput");
+    if(!input) return;
+    var t = input.value;
+    input.value = "";
+    msgSubmit(t);
+  }
+
+  // ---- My-Between: chatbot a regole ----
+  var operatorJoined = false;
+
+  function botNorm(s){
+    return (s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9\s]/g, " ");
+  }
+
+  function botTyping(){
+    var host = document.getElementById("msgThread");
+    if(!host) return;
+    var item = document.createElement("div");
+    item.className = "msg-item from-doctor msg-typing";
+    var bubble = document.createElement("div");
+    bubble.className = "msg-bubble";
+    bubble.innerHTML = '<span class="msg-typing-dot"></span><span class="msg-typing-dot"></span><span class="msg-typing-dot"></span>';
+    item.appendChild(bubble);
+    host.appendChild(item);
+    host.scrollTop = host.scrollHeight;
+  }
+
+  function botMedsAnswer(){
+    var meds = PATIENT_DATA.meds || [];
+    if(!meds.length) return "Al momento non risultano farmaci nel suo piano.";
+    var list = meds.map(function(m){ return m.name + " (" + m.slot + ", " + m.time + ")"; }).join("; ");
+    return "Ecco la sua terapia: " + list + ". Trova il dettaglio e può spuntare i farmaci nella sezione Piano.";
+  }
+
+  function botApptAnswer(){
+    var today = new Date(); today.setHours(0, 0, 0, 0);
+    var future = (PATIENT_DATA.appointments || []).filter(function(a){ return new Date(a.datetime).getTime() >= today.getTime(); });
+    future.sort(function(a, b){ return new Date(a.datetime).getTime() - new Date(b.datetime).getTime(); });
+    var a = future[0];
+    if(!a) return "Non ci sono appuntamenti in programma al momento.";
+    return "Il suo prossimo appuntamento è: " + a.title + ", " + a.when + ". " + a.where + ". Lo trova anche nel calendario della sezione Piano.";
+  }
+
+  function botMatch(text){
+    var t = botNorm(text);
+    var has = function(arr){ return arr.some(function(k){ return t.indexOf(k) !== -1; }); };
+    if(has(["operatore","persona","parlare","telefono","chiamare","contatto","numero","assistenza","aiuto"]))
+      return { escalate: true };
+    if(has(["male","dolore","sto male","non mi sento","preoccup","paura","ansia","emergenza"]))
+      return { answer: "Mi dispiace che non si senta bene. Se è un'emergenza chiami subito il 112. Per un consiglio medico non urgente può chiamare il 116117. Se vuole, la metto in contatto con un operatore della sua ULSS." };
+    if(has(["farmaco","farmaci","medicin","terapia","pastiglia","pillola","compressa","cura"]))
+      return { answer: botMedsAnswer() };
+    if(has(["appuntament","visita","visite","controllo","calendario","prossim","neurolog"]))
+      return { answer: botApptAnswer() };
+    if(has(["documento","documenti","referto","referti","fascicolo","fse","km zero","cartella","esame","esami"]))
+      return { answer: "I suoi referti e documenti sono nel Fascicolo Sanitario Km Zero. Può aprirlo dal link nei Numeri utili qui sopra. Se non riesce ad accedere, le posso far contattare un operatore." };
+    if(has(["ciao","salve","buongiorno","buonasera"]))
+      return { answer: "Salve Elena! Come posso aiutarla oggi? Posso darle informazioni su farmaci, appuntamenti o documenti." };
+    if(has(["grazie","perfetto","va bene"]))
+      return { answer: "Di nulla, Elena. Sono qui se le serve altro." };
+    return { answer: "Non sono sicuro di aver capito. Posso aiutarla con farmaci, appuntamenti, documenti del Fascicolo, oppure metterla in contatto con un operatore. Cosa preferisce?" };
+  }
+
+  function botEscalate(){
+    if(!operatorJoined){
+      operatorJoined = true;
+      msgPushIncoming("mybetween", "Va bene, la metto in contatto con un operatore della sua ULSS. Per urgenze può sempre chiamare il 112, per cure non urgenti il 116117.");
+      setTimeout(function(){
+        botTyping();
+        setTimeout(function(){
+          msgPushIncoming("mybetween", "Salve signora Colombo, sono un operatore della sua ULSS. Ho visto che ha bisogno di assistenza, mi dica pure come posso aiutarla.", "Operatore ULSS");
+        }, 1100);
+      }, 900);
+    } else {
+      msgPushIncoming("mybetween", "Un operatore è già stato avvisato e le risponderà a breve. Per urgenze chiami il 112, per cure non urgenti il 116117.");
+    }
+  }
+
+  function botRespond(userText){
+    var res = botMatch(userText);
+    botTyping();
+    setTimeout(function(){
+      if(res.escalate) botEscalate();
+      else msgPushIncoming("mybetween", res.answer);
+    }, 900);
   }
 
   var msgIncomingDone = false;
 
-  function msgPushIncoming(convoId, text){
+  function msgPushIncoming(convoId, text, author){
     var c = msgFindConvo(convoId);
     if(!c) return;
-    c.messages.push({ date: msgNow(), author: c.name, fromPatient: false, text: text });
+    c.messages.push({ date: msgNow(), author: author || c.name, fromPatient: false, text: text });
     if(openConvoId === convoId){ renderThread(convoId); }
     else { c.unread = true; }
     renderMessages();
@@ -4302,6 +4414,14 @@
         input.addEventListener("keydown", function(e){ if(e.key === "Enter"){ e.preventDefault(); sendMessage(); } });
       }
       sendBtn.setAttribute("aria-label", STRINGS[L].msgSend);
+    }
+
+    var chipBox = document.getElementById("msgChips");
+    if(chipBox && !chipBox.dataset.ready){
+      chipBox.dataset.ready = "1";
+      chipBox.querySelectorAll(".msg-chip").forEach(function(ch){
+        ch.addEventListener("click", function(){ msgSubmit(ch.getAttribute("data-q")); });
+      });
     }
 
     if(openConvoId) renderThread(openConvoId);
