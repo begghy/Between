@@ -3575,14 +3575,24 @@
     }
   });
 
-  // Id dei farmaci spuntati in questa sessione: li tiene visibili (barrati) in Home
-  // anche dopo che taken è diventato true, finché l'utente non esce e rientra.
-  var sessionTakenIds = [];
+  // Id dei farmaci che la Home mostra: fissati UNA VOLTA all'avvio (mattina e
+  // taken===false in quel momento). La lista non cambia più: i farmaci restano
+  // visibili anche quando vengono spuntati (appaiono barrati).
+  var homeMedIds = null;
 
   // Genera appuntamenti e farmaci della Home a7 da PATIENT_DATA.
   // Aspetto identico al markup precedente (stesse classi glass/accent-card/med-row/sq-check).
   function renderPatientData() {
     var L = (document.documentElement.lang === "en") ? "en" : "it";
+
+    // Fissa una sola volta gli id dei farmaci che la Home deve mostrare:
+    // mattina e ancora da prendere all'avvio. La guardia === null garantisce
+    // che la lista non venga mai ricalcolata (altrimenti cambierebbe).
+    if (homeMedIds === null) {
+      homeMedIds = PATIENT_DATA.meds.filter(function (m) {
+        return m.slot === "mattina" && m.taken === false;
+      }).map(function (m) { return m.id; });
+    }
 
     // --- Appuntamenti (sintesi Home: primi 3; dettaglio completo nel Piano) ---
     var apptHost = document.getElementById("homeAppts");
@@ -3607,15 +3617,14 @@
       });
     }
 
-    // --- Farmaci (sintesi Home: solo la mattina ancora da prendere) ---
-    // Mostra i farmaci della mattina non presi; quelli spuntati ORA restano
-    // visibili (barrati) perché il loro id è in sessionTakenIds, finché non si
-    // esce e rientra. Lo stato "preso" è persistente in PATIENT_DATA (taken).
+    // --- Farmaci (sintesi Home: la lista fissata all'avvio in homeMedIds) ---
+    // Mostra sempre e solo quei farmaci, per id, indipendentemente dal taken
+    // attuale: i presi appaiono barrati (classe done) e non cliccabili.
     var medHost = document.getElementById("homeMeds");
     if (medHost) {
       medHost.innerHTML = "";
       PATIENT_DATA.meds.filter(function (m) {
-        return m.slot === "mattina" && (m.taken === false || sessionTakenIds.indexOf(m.id) !== -1);
+        return homeMedIds.indexOf(m.id) !== -1;
       }).forEach(function (med) {
         var row = document.createElement("div");
         row.className = med.taken ? "glass med-row done" : "glass med-row";
@@ -3628,13 +3637,11 @@
         label.textContent = med.name + " · " + med.slot + " · " + med.time;
         row.appendChild(check);
         row.appendChild(label);
-        // Spunta persistente e irreversibile dalla Home: si può segnare come
-        // preso una sola volta; un secondo click non fa nulla.
+        // Click solo se non ancora preso: segna come preso (persistente). Una
+        // volta barrato non è più interagibile; correzione possibile dal Piano.
         row.addEventListener("click", function () {
           if (med.taken) return;
           med.taken = true;                 // fonte di verità persistente
-          sessionTakenIds.push(med.id);     // tienilo visibile fino a uscita/rientro
-          row.classList.add("done");
           renderPatientData();              // rigenera subito anche il Piano
         });
         medHost.appendChild(row);
@@ -3681,8 +3688,6 @@
             undo.addEventListener("click", function (e) {
               e.stopPropagation();
               med.taken = false;
-              var idx = sessionTakenIds.indexOf(med.id);
-              if (idx !== -1) sessionTakenIds.splice(idx, 1);
               renderPatientData();
             });
             row.appendChild(undo);
