@@ -1611,6 +1611,16 @@
     .msg-input::placeholder{color:var(--muted2);}
     .msg-send{width:40px;height:40px;flex-shrink:0;border-radius:50%;border:none;background:var(--accent);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;}
     .msg-send svg{width:20px;height:20px;}
+    /* Messaggi — numeri utili */
+    .msg-helpbox{padding:14px 16px;margin:6px 0 14px;}
+    .msg-help-title{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:0 0 8px;}
+    .msg-help-row{display:flex;align-items:center;gap:12px;padding:8px 0;text-decoration:none;color:var(--text);}
+    .msg-help-row + .msg-help-row{border-top:1px solid rgba(255,255,255,.06);}
+    .msg-help-ic{width:30px;height:30px;flex-shrink:0;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--glass);border:1px solid rgba(255,255,255,var(--glass-border));color:var(--accent);}
+    .msg-help-ic svg{width:15px;height:15px;}
+    .msg-help-label{flex:1;min-width:0;font-size:14px;}
+    .msg-help-num{font-size:14px;font-weight:650;color:var(--accent);white-space:nowrap;font-variant-numeric:tabular-nums;}
+    .msg-help-link{display:flex;align-items:center;gap:12px;margin-top:10px;padding-top:12px;border-top:1px solid rgba(255,255,255,.1);text-decoration:none;color:var(--accent);font-size:14px;font-weight:600;}
   </style>
 </head>
 <body>
@@ -2001,6 +2011,33 @@
                 <div class="tab-panel" data-panel="messaggi" hidden>
                   <div id="msgInbox" class="msg-inbox-view">
                     <p class="section-kicker" data-i18n="tabMessages"></p>
+                    <div class="glass msg-helpbox">
+                      <p class="msg-help-title" data-i18n="msgHelpTitle"></p>
+                      <a class="msg-help-row" href="tel:112">
+                        <span class="msg-help-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg></span>
+                        <span class="msg-help-label" data-i18n="msgHelpEmergency"></span>
+                        <span class="msg-help-num">112</span>
+                      </a>
+                      <a class="msg-help-row" href="tel:116117">
+                        <span class="msg-help-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg></span>
+                        <span class="msg-help-label" data-i18n="msgHelpGuard"></span>
+                        <span class="msg-help-num">116117</span>
+                      </a>
+                      <a class="msg-help-row" href="tel:800201301">
+                        <span class="msg-help-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg></span>
+                        <span class="msg-help-label" data-i18n="msgHelpUrp"></span>
+                        <span class="msg-help-num">800 201 301</span>
+                      </a>
+                      <a class="msg-help-row" href="tel:0499823121">
+                        <span class="msg-help-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg></span>
+                        <span class="msg-help-label" data-i18n="msgHelpDistrict"></span>
+                        <span class="msg-help-num">049 9823121</span>
+                      </a>
+                      <a class="msg-help-link" href="https://salute.regione.veneto.it/fse" target="_blank" rel="noopener">
+                        <span class="msg-help-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14L21 3"/></svg></span>
+                        <span data-i18n="msgHelpFse"></span>
+                      </a>
+                    </div>
                     <p class="plan-subhead" data-i18n="messagesSubhead"></p>
                     <div id="msgConvoList"></div>
                   </div>
@@ -3297,6 +3334,12 @@
       msgBack: "Indietro",
       msgPlaceholder: "Scrivi un messaggio…",
       msgSend: "Invia",
+      msgHelpTitle: "Numeri utili",
+      msgHelpEmergency: "Emergenze",
+      msgHelpGuard: "Guardia medica · cure non urgenti",
+      msgHelpUrp: "URP ULSS 6 Euganea",
+      msgHelpDistrict: "Distretto Alta Padovana",
+      msgHelpFse: "Apri il Fascicolo Sanitario Km Zero",
       tabProfile: "Profilo",
       planMedsTitle: "Farmaci del giorno",
       planApptTitle: "Calendario Appuntamenti",
@@ -3528,6 +3571,12 @@
       msgBack: "Back",
       msgPlaceholder: "Type a message…",
       msgSend: "Send",
+      msgHelpTitle: "Useful numbers",
+      msgHelpEmergency: "Emergencies",
+      msgHelpGuard: "Out-of-hours medical care",
+      msgHelpUrp: "URP ULSS 6 Euganea",
+      msgHelpDistrict: "Alta Padovana District",
+      msgHelpFse: "Open your Km Zero Health Record",
       tabProfile: "Profile",
       planMedsTitle: "Daily medication",
       planApptTitle: "Appointments Calendar",
