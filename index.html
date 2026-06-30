@@ -3951,8 +3951,8 @@
       // allontana dall'asse di STEP px, così i titoli non si toccano mai.
       var lastAbovePct = -999, lastBelowPct = -999;
       var aboveLevel = 0, belowLevel = 0;
-      var MIN_GAP = 3.2;   // % sotto cui due eventi sulla stessa fila sono "vicini"
-      var STEP = 44;       // px di scalino verticale per livello
+      var MIN_GAP = 4.5;   // % sotto cui due eventi sulla stessa fila sono "vicini"
+      var STEP = 50;       // px del singolo gradino (alternanza a 2 livelli: 0 / 1)
       sorted.forEach(function (app, i) {
         var t = new Date(app.datetime).getTime();
         var leftPct = pct(t);
@@ -3963,12 +3963,12 @@
         // livello verticale e offset (sempre allontanando dall'asse)
         var offset;
         if (isAbove) {
-          if (leftPct - lastAbovePct < MIN_GAP) { aboveLevel++; } else { aboveLevel = 0; }
+          if (leftPct - lastAbovePct < MIN_GAP) { aboveLevel = 1 - aboveLevel; } else { aboveLevel = 0; }
           lastAbovePct = leftPct;
           offset = aboveLevel * STEP;
           ev.style.bottom = (202 + offset) + "px";   // sovrascrive bottom:202 del CSS, sale
         } else {
-          if (leftPct - lastBelowPct < MIN_GAP) { belowLevel++; } else { belowLevel = 0; }
+          if (leftPct - lastBelowPct < MIN_GAP) { belowLevel = 1 - belowLevel; } else { belowLevel = 0; }
           lastBelowPct = leftPct;
           offset = belowLevel * STEP;
           ev.style.top = (202 + offset) + "px";       // sovrascrive top:202 del CSS, scende
