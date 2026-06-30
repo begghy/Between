@@ -1630,6 +1630,15 @@
     .msg-typing-dot:nth-child(2){animation-delay:.2s;}
     .msg-typing-dot:nth-child(3){animation-delay:.4s;}
     @keyframes msgBlink{0%,80%,100%{opacity:.3;}40%{opacity:1;}}
+    /* Messaggi — avviso di sistema + sondaggio */
+    .msg-system{align-self:center;max-width:90%;text-align:center;font-size:12.5px;color:var(--muted);background:var(--glass);border:1px solid rgba(255,255,255,var(--glass-border));border-radius:14px;padding:9px 14px;margin:2px auto;}
+    .msg-survey{align-self:center;width:100%;max-width:320px;text-align:center;background:var(--glass);border:1px solid rgba(255,255,255,var(--glass-border));border-radius:18px;padding:14px 16px;margin:2px auto;}
+    .msg-survey-q{font-size:13px;color:var(--text);margin-bottom:10px;}
+    .msg-survey-stars{display:flex;justify-content:center;gap:6px;}
+    .msg-star{font-size:24px;line-height:1;background:none;border:none;cursor:pointer;color:var(--muted2);padding:0;transition:color .15s,transform .15s;}
+    .msg-star.on{color:#ffb020;}
+    .msg-star:not(:disabled):hover{transform:scale(1.15);}
+    .msg-survey-thanks{font-size:12px;color:var(--muted);margin-top:10px;}
   </style>
 </head>
 <body>
@@ -3360,6 +3369,8 @@
       msgChipAppt: "Prossimo appuntamento",
       msgChipDocs: "Documenti e FSE",
       msgChipOperator: "Parla con un operatore",
+      msgSurveyQ: "Quanto è stato utile l'aiuto di My-Between?",
+      msgSurveyThanks: "Grazie per il suo feedback. Ci aiuta a migliorare il servizio.",
       tabProfile: "Profilo",
       planMedsTitle: "Farmaci del giorno",
       planApptTitle: "Calendario Appuntamenti",
@@ -3601,6 +3612,8 @@
       msgChipAppt: "Next appointment",
       msgChipDocs: "Documents and FSE",
       msgChipOperator: "Talk to an operator",
+      msgSurveyQ: "How helpful was My-Between?",
+      msgSurveyThanks: "Thanks for your feedback. It helps us improve the service.",
       tabProfile: "Profile",
       planMedsTitle: "Daily medication",
       planApptTitle: "Appointments Calendar",
@@ -4179,12 +4192,54 @@
     return (PATIENT_DATA.conversations || []).filter(function(c){ return c.id === id; })[0];
   }
 
+  function buildSurvey(m){
+    var L = (document.documentElement.lang === "en") ? "en" : "it";
+    var wrap = document.createElement("div");
+    wrap.className = "msg-survey";
+    var q = document.createElement("div");
+    q.className = "msg-survey-q";
+    q.textContent = STRINGS[L].msgSurveyQ;
+    var stars = document.createElement("div");
+    stars.className = "msg-survey-stars";
+    for(var i = 1; i <= 5; i++){
+      (function(n){
+        var s = document.createElement("button");
+        s.type = "button";
+        s.className = "msg-star" + (m.rating && n <= m.rating ? " on" : "");
+        s.textContent = "★";
+        if(m.rating){ s.disabled = true; }
+        else { s.addEventListener("click", function(){ m.rating = n; renderThread("mybetween"); }); }
+        stars.appendChild(s);
+      })(i);
+    }
+    wrap.appendChild(q);
+    wrap.appendChild(stars);
+    if(m.rating){
+      var th = document.createElement("div");
+      th.className = "msg-survey-thanks";
+      th.textContent = STRINGS[L].msgSurveyThanks;
+      wrap.appendChild(th);
+    }
+    return wrap;
+  }
+
   function renderThread(id){
     var c = msgFindConvo(id);
     var host = document.getElementById("msgThread");
     if(!c || !host) return;
     host.innerHTML = "";
     c.messages.forEach(function(m){
+      if(m.type === "system"){
+        var note = document.createElement("div");
+        note.className = "msg-system";
+        note.textContent = m.text;
+        host.appendChild(note);
+        return;
+      }
+      if(m.type === "survey"){
+        host.appendChild(buildSurvey(m));
+        return;
+      }
       var item = document.createElement("div");
       item.className = "msg-item " + (m.fromPatient ? "from-patient" : "from-doctor");
       var meta = document.createElement("div");
@@ -4255,6 +4310,7 @@
 
   // ---- My-Between: chatbot a regole ----
   var operatorJoined = false;
+  var operatorRequests = 0;
 
   function botNorm(s){
     return (s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9\s]/g, " ");
@@ -4309,26 +4365,40 @@
     return { answer: "Non sono sicuro di aver capito. Posso aiutarla con farmaci, appuntamenti, documenti del Fascicolo, oppure metterla in contatto con un operatore. Cosa preferisce?" };
   }
 
-  function botEscalate(){
-    if(!operatorJoined){
-      operatorJoined = true;
-      msgPushIncoming("mybetween", "Va bene, la metto in contatto con un operatore della sua ULSS. Per urgenze può sempre chiamare il 112, per cure non urgenti il 116117.");
-      setTimeout(function(){
-        botTyping();
-        setTimeout(function(){
-          msgPushIncoming("mybetween", "Salve signora Colombo, sono un operatore della sua ULSS. Ho visto che ha bisogno di assistenza, mi dica pure come posso aiutarla.", "Operatore ULSS");
-        }, 1100);
-      }, 900);
+  function botRequestOperator(){
+    operatorRequests++;
+    if(operatorRequests >= 2){
+      botEscalate();
     } else {
-      msgPushIncoming("mybetween", "Un operatore è già stato avvisato e le risponderà a breve. Per urgenze chiami il 112, per cure non urgenti il 116117.");
+      msgPushIncoming("mybetween", "Capisco. Posso intanto provare ad aiutarla io: mi dica pure se ha bisogno di informazioni su farmaci, appuntamenti o documenti. Se preferisce comunque parlare con una persona, me lo ripeta e la metto in contatto con un operatore della sua ULSS.");
     }
+  }
+
+  function botEscalate(){
+    if(operatorJoined){
+      msgPushIncoming("mybetween", "Un operatore è già stato avvisato e le risponderà a breve. Per urgenze chiami il 112, per cure non urgenti il 116117.");
+      return;
+    }
+    operatorJoined = true;
+    var c = msgFindConvo("mybetween");
+    if(!c) return;
+    c.messages.push({ type: "system", text: "La sto mettendo in contatto con un operatore della sua ULSS. Attenda qualche istante, le risponderà appena disponibile." });
+    c.messages.push({ type: "survey", rating: null });
+    if(openConvoId === "mybetween") renderThread("mybetween"); else { c.unread = true; }
+    renderMessages();
+    setTimeout(function(){
+      botTyping();
+      setTimeout(function(){
+        msgPushIncoming("mybetween", "Salve signora Colombo, sono un operatore della sua ULSS. Ho visto che ha bisogno di assistenza, mi dica pure come posso aiutarla.", "Operatore ULSS");
+      }, 1200);
+    }, 6500);
   }
 
   function botRespond(userText){
     var res = botMatch(userText);
     botTyping();
     setTimeout(function(){
-      if(res.escalate) botEscalate();
+      if(res.escalate) botRequestOperator();
       else msgPushIncoming("mybetween", res.answer);
     }, 900);
   }
@@ -4383,12 +4453,12 @@
       var time = document.createElement("span");
       time.className = "msg-convo-time";
       var last = c.messages[c.messages.length - 1];
-      time.textContent = last ? last.date : "";
+      time.textContent = (last && last.date) ? last.date : "";
       top.appendChild(name);
       top.appendChild(time);
       var preview = document.createElement("div");
       preview.className = "msg-convo-preview";
-      preview.textContent = last ? last.text : c.role;
+      preview.textContent = (last && last.text) ? last.text : c.role;
       body.appendChild(top);
       body.appendChild(preview);
 
