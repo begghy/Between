@@ -4388,9 +4388,10 @@
     renderMessages();
     setTimeout(function(){
       botTyping();
+      var writeMs = 3000 + Math.floor(Math.random() * 4000); // 3-7s di scrittura umana
       setTimeout(function(){
-        msgPushIncoming("mybetween", "Salve signora Colombo, sono un operatore della sua ULSS. Ho visto che ha bisogno di assistenza, mi dica pure come posso aiutarla.", "Operatore ULSS");
-      }, 1200);
+        msgPushIncoming("mybetween", "Salve signora Colombo, sono Giovanni, un operatore della sua ULSS. Ho visto che ha bisogno di assistenza, mi dica pure come posso aiutarla.", "Operatore ULSS · Giovanni");
+      }, writeMs);
     }, 6500);
   }
 
