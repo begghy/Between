@@ -2432,6 +2432,7 @@
     // rigenera farmaci/appuntamenti così la sezione riflette lo stato corrente
     if (window.renderPatientData) window.renderPatientData();
   }
+  window.switchTab = switchTab;
   // wiring tab a7
   document.querySelectorAll('[data-screen="a7"] .tab-bar .tab').forEach(function(t){
     t.addEventListener('click', function(){
@@ -2847,8 +2848,8 @@
       var currentPanel=null;
       if(a7) a7.querySelectorAll('.tab-panel').forEach(function(p){ if(!p.hidden) currentPanel=p.getAttribute('data-panel'); });
       // se sei già nella sezione, non navigare: chiudi e basta
-      if(target && target!==currentPanel && typeof switchTab==='function'){
-        switchTab(target);
+      if(target && target!==currentPanel && typeof window.switchTab==='function'){
+        window.switchTab(target);
       }
       closeMenu();
     });
