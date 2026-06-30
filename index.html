@@ -713,6 +713,11 @@
     .profile-switch.on{background:var(--accent);}
     .profile-switch.on::after{transform:translateX(18px);}
     .profile-logout{width:100%;padding:13px;border-radius:14px;border:1px solid rgba(229,72,77,.4);background:rgba(229,72,77,.12);color:#e5484d;font-size:14px;font-weight:600;cursor:pointer;margin:6px 0 8px;}
+    .profile-doc-title{font-size:18px;font-weight:700;color:var(--text);min-width:0;}
+    .profile-doc-body{padding-bottom:12px;}
+    .profile-doc-h{font-size:15px;font-weight:700;color:var(--text);margin:16px 0 6px;}
+    .profile-doc-h:first-child{margin-top:4px;}
+    .profile-doc-p{font-size:14px;line-height:1.55;color:var(--muted);margin:0 0 10px;}
     .med-name { font-size: 16px; font-weight: 500; }
     .med-undo { font-size: 14px; font-weight: 600; color: var(--accent); cursor: pointer; margin-left: auto; padding-left: 12px; white-space: nowrap; text-decoration: none; display: inline-block; }
     .med-row.done .med-undo { opacity: 1 !important; color: var(--accent) !important; font-weight: 600; }
@@ -2121,6 +2126,7 @@
                   </div>
                 </div>
                 <div class="tab-panel" data-panel="profilo" hidden>
+                  <div id="profileMain">
                   <p class="section-kicker" data-i18n="tabProfile"></p>
                   <div class="glass profile-id">
                     <div class="profile-avatar" id="profileAvatar"></div>
@@ -2160,6 +2166,14 @@
                     <div class="profile-row"><span class="profile-row-label" data-i18n="profileVersion"></span><span class="profile-row-value">1.0.0</span></div>
                   </div>
                   <button type="button" class="profile-logout" id="profileLogout" data-i18n="profileLogout"></button>
+                  </div>
+                  <div id="profileDoc" hidden>
+                    <div class="msg-thread-header">
+                      <button type="button" id="profileDocBack" class="msg-back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></button>
+                      <div class="profile-doc-title" id="profileDocTitle"></div>
+                    </div>
+                    <div id="profileDocBody" class="profile-doc-body"></div>
+                  </div>
                 </div>
               </div>
               <nav class="tab-bar" aria-label="Tab">
@@ -4737,13 +4751,83 @@
     });
     document.querySelectorAll('[data-panel="profilo"] .profile-link').forEach(function(lk){
       lk.addEventListener("click", function(){
-        if(lk.getAttribute("data-action") === "operator" && window.switchTab) window.switchTab("messaggi");
+        var a = lk.getAttribute("data-action");
+        if(a === "operator"){ if(window.switchTab) window.switchTab("messaggi"); return; }
+        if(PROFILE_DOCS[a]) openProfileDoc(a);
       });
     });
+    var docBack = document.getElementById("profileDocBack");
+    if(docBack) docBack.addEventListener("click", closeProfileDoc);
     var lo = document.getElementById("profileLogout");
     if(lo) lo.addEventListener("click", function(){ location.hash = "a1"; });
     var headerAv = document.querySelector('[data-screen="a7"] .header-row .avatar-round');
     if(headerAv){ headerAv.style.cursor = "pointer"; headerAv.addEventListener("click", function(){ if(window.switchTab) window.switchTab("profilo"); }); }
+  }
+
+  var PROFILE_DOCS = {
+    help: { titleKey: "profileHelpCenter", blocks: [
+      { h: "Come funziona Between" },
+      { p: "Between è lo spazio dove tieni insieme il tuo percorso di cura dopo la dimissione: piano dei farmaci, appuntamenti e comunicazione con il tuo team di cura." },
+      { h: "Hai bisogno di aiuto?" },
+      { p: "Per domande sull'app puoi chiedere all'assistente My-Between nella sezione Messaggi. Per questioni cliniche o organizzative scrivi al tuo professionista o contatta un operatore della tua ULSS." },
+      { h: "Numeri utili" },
+      { p: "Trovi i numeri della tua ULSS e il link al Fascicolo Sanitario nella sezione Messaggi, nel riquadro in alto." }
+    ]},
+    faq: { titleKey: "profileFaq", blocks: [
+      { h: "Come accedo a Between?" },
+      { p: "Con la tua identità digitale SPID, oppure con la Carta d'Identità Elettronica, dalla schermata iniziale." },
+      { h: "I miei dati sono al sicuro?" },
+      { p: "Sì. I dati sono trattati secondo le norme sulla privacy e condivisi solo con il team di cura che hai autorizzato." },
+      { h: "Posso usare Between al posto del medico?" },
+      { p: "No. Between è uno strumento di coordinamento e comunicazione, non sostituisce il parere del medico. In caso di emergenza chiama il 112." },
+      { h: "Chi può vedere il mio piano?" },
+      { p: "Tu, il tuo caregiver collegato e i professionisti della tua ULSS coinvolti nella tua cura." }
+    ]},
+    privacy: { titleKey: "profilePrivacy", blocks: [
+      { h: "Trattamento dei dati" },
+      { p: "I tuoi dati sanitari sono gestiti nell'ambito del Fascicolo Sanitario Elettronico della Regione Veneto, l'ecosistema Sanità Km Zero." },
+      { h: "Consensi" },
+      { p: "Puoi gestire il consenso alla consultazione dei tuoi documenti da parte dei professionisti dal tuo Fascicolo Sanitario. Between mostra solo le informazioni che hai scelto di condividere con il team di cura." },
+      { h: "Caregiver collegato" },
+      { p: "Il caregiver che hai collegato può vedere il piano e proporre appuntamenti, ma non può modificare i tuoi dati clinici." }
+    ]},
+    terms: { titleKey: "profileTerms", blocks: [
+      { h: "Prima di procedere: trattamento dei tuoi dati" },
+      { p: "Noi, in qualità di gestori della piattaforma Between, trattiamo i tuoi dati nell'ambito dei servizi di coordinamento delle cure, in collaborazione con la tua Azienda ULSS e con il Fascicolo Sanitario Elettronico della Regione Veneto." },
+      { p: "Alcuni trattamenti sono tecnicamente necessari per far funzionare il servizio, altri vengono effettuati solo con il tuo consenso, per esempio per migliorare l'esperienza d'uso o per produrre statistiche aggregate e anonime." },
+      { p: "Continuando dichiari di aver letto l'informativa. Puoi modificare le tue preferenze in qualsiasi momento da questa sezione." }
+    ]}
+  };
+
+  function openProfileDoc(key){
+    var doc = PROFILE_DOCS[key];
+    if(!doc) return;
+    var L = (document.documentElement.lang === "en") ? "en" : "it";
+    var title = document.getElementById("profileDocTitle");
+    if(title) title.textContent = STRINGS[L][doc.titleKey];
+    var body = document.getElementById("profileDocBody");
+    if(body){
+      body.innerHTML = "";
+      doc.blocks.forEach(function(b){
+        var el = document.createElement("div");
+        if(b.h){ el.className = "profile-doc-h"; el.textContent = b.h; }
+        else { el.className = "profile-doc-p"; el.textContent = b.p; }
+        body.appendChild(el);
+      });
+    }
+    var main = document.getElementById("profileMain");
+    var dv = document.getElementById("profileDoc");
+    if(main) main.hidden = true;
+    if(dv) dv.hidden = false;
+    var sc = document.querySelector('[data-screen="a7"] .scroll-area');
+    if(sc) sc.scrollTop = 0;
+  }
+
+  function closeProfileDoc(){
+    var dv = document.getElementById("profileDoc");
+    var main = document.getElementById("profileMain");
+    if(dv) dv.hidden = true;
+    if(main) main.hidden = false;
   }
 
   function renderProfile(){
