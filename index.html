@@ -715,6 +715,8 @@
       -ms-overflow-style: none;       /* IE/Edge legacy */
     }
     .appt-timeline::-webkit-scrollbar { display: none; height: 0; }  /* WebKit/Blink */
+    .appt-timeline { cursor: grab; }                 /* trascinabile in orizzontale */
+    .appt-timeline.dragging { cursor: grabbing; }    /* durante il trascinamento */
     @media (max-width: 1080px) {
       .appt-timeline { width: 100%; margin-left: auto; }  /* fallback se lo spazio non basta */
     }
@@ -4003,8 +4005,38 @@
   // esposta globale: switchTab vive in un'altra IIFE e la richiama via window
   window.renderPatientData = renderPatientData;
 
+  // Drag-to-scroll orizzontale sulla timeline (stile Notion). I listener si
+  // agganciano UNA SOLA VOLTA (guardia dataset.dragReady): la rotella continua
+  // a funzionare, questo aggiunge il trascinamento col mouse.
+  function setupTimelineDrag() {
+    var tl = document.getElementById("planTimeline");
+    if (!tl) return;
+    if (tl.dataset.dragReady === "1") return; // evita doppio setup
+    tl.dataset.dragReady = "1";
+    var isDown = false, startX = 0, startScroll = 0, moved = false;
+    tl.addEventListener("mousedown", function (e) {
+      isDown = true; moved = false;
+      startX = e.pageX;
+      startScroll = tl.scrollLeft;
+      tl.classList.add("dragging");
+    });
+    window.addEventListener("mousemove", function (e) {
+      if (!isDown) return;
+      var dx = e.pageX - startX;
+      if (Math.abs(dx) > 3) moved = true;
+      tl.scrollLeft = startScroll - dx;
+    });
+    window.addEventListener("mouseup", function () {
+      isDown = false;
+      tl.classList.remove("dragging");
+    });
+    // evita che un trascinamento selezioni testo
+    tl.addEventListener("dragstart", function (e) { e.preventDefault(); });
+  }
+
   applyLanguage("it");
   renderPatientData();
+  setupTimelineDrag();
 })();
   </script>
 </body>
