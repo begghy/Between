@@ -766,6 +766,8 @@
     }
     .timeline-event.ev-above::after { bottom: -12px; height: 12px; }
     .timeline-event.ev-below::after { top: -12px; height: 12px; }
+    /* eventi sfalsati (offset>0): niente stelo, eviterebbe steli storti che non raggiungono l'asse */
+    .timeline-event.ev-offset::after { display: none; }
 
     /* pallino con icona di stato */
     .timeline-event .ev-dot {
@@ -3943,11 +3945,36 @@
       var sorted = PATIENT_DATA.appointments.slice().sort(function (a, b) {
         return new Date(a.datetime).getTime() - new Date(b.datetime).getTime();
       });
+      // sfalsamento verticale anti-accavallamento: gli eventi sono ordinati per
+      // data (leftPct crescente). Per ciascuna fila (above/below) se l'evento è
+      // troppo vicino al precedente della stessa fila, sale di livello e si
+      // allontana dall'asse di STEP px, così i titoli non si toccano mai.
+      var lastAbovePct = -999, lastBelowPct = -999;
+      var aboveLevel = 0, belowLevel = 0;
+      var MIN_GAP = 3.2;   // % sotto cui due eventi sulla stessa fila sono "vicini"
+      var STEP = 58;       // px di scalino verticale per livello
       sorted.forEach(function (app, i) {
         var t = new Date(app.datetime).getTime();
+        var leftPct = pct(t);
+        var isAbove = (i % 2 === 0);
         var ev = document.createElement("div");
-        ev.className = "timeline-event " + (i % 2 === 0 ? "ev-above" : "ev-below") + " ev-" + app.status;
-        ev.style.left = pct(t) + "%";
+        ev.className = "timeline-event " + (isAbove ? "ev-above" : "ev-below") + " ev-" + app.status;
+        ev.style.left = leftPct + "%";
+        // livello verticale e offset (sempre allontanando dall'asse)
+        var offset;
+        if (isAbove) {
+          if (leftPct - lastAbovePct < MIN_GAP) { aboveLevel++; } else { aboveLevel = 0; }
+          lastAbovePct = leftPct;
+          offset = aboveLevel * STEP;
+          ev.style.bottom = (152 + offset) + "px";   // sovrascrive bottom:152 del CSS, sale
+        } else {
+          if (leftPct - lastBelowPct < MIN_GAP) { belowLevel++; } else { belowLevel = 0; }
+          lastBelowPct = leftPct;
+          offset = belowLevel * STEP;
+          ev.style.top = (152 + offset) + "px";       // sovrascrive top:152 del CSS, scende
+        }
+        // con offset lo stelo non raggiungerebbe l'asse: lo nascondo (niente steli storti)
+        if (offset > 0) ev.classList.add("ev-offset");
         var dot = document.createElement("div");
         dot.className = "ev-dot";
         dot.style.background = statusColors[app.status] || "#4a7fd4";
