@@ -718,6 +718,17 @@
     .profile-doc-h{font-size:15px;font-weight:700;color:var(--text);margin:16px 0 6px;}
     .profile-doc-h:first-child{margin-top:4px;}
     .profile-doc-p{font-size:14px;line-height:1.55;color:var(--muted);margin:0 0 10px;}
+    /* Gate consenso all'avvio */
+    .consent-gate{position:fixed;inset:0;z-index:9999;background:var(--bg-page);display:flex;align-items:flex-end;justify-content:center;}
+    .consent-gate.is-hidden{display:none;}
+    .consent-sheet{width:100%;max-width:440px;height:100%;display:flex;flex-direction:column;padding:0 22px;}
+    .consent-scroll{flex:1;overflow-y:auto;padding:54px 0 16px;}
+    .consent-title{font-size:26px;font-weight:750;letter-spacing:-0.02em;color:var(--text);line-height:1.2;margin:0 0 18px;}
+    .consent-p{font-size:15px;line-height:1.6;color:var(--muted);margin:0 0 14px;}
+    .consent-actions{display:flex;flex-direction:column;gap:10px;padding:12px 0 26px;}
+    .consent-btn{width:100%;padding:14px;border-radius:16px;font-size:15px;font-weight:600;cursor:pointer;border:none;}
+    .consent-primary{background:var(--accent);color:#fff;}
+    .consent-ghost{background:transparent;color:var(--accent);border:1px solid var(--accent);}
     .med-name { font-size: 16px; font-weight: 500; }
     .med-undo { font-size: 14px; font-weight: 600; color: var(--accent); cursor: pointer; margin-left: auto; padding-left: 12px; white-space: nowrap; text-decoration: none; display: inline-block; }
     .med-row.done .med-undo { opacity: 1 !important; color: var(--accent) !important; font-weight: 600; }
@@ -1693,6 +1704,22 @@
     <button type="button" class="ham-item" data-tab="messaggi"><span data-i18n="tabMessages"></span></button>
     <button type="button" class="ham-item" data-tab="profilo"><span data-i18n="tabProfile"></span></button>
   </nav>
+
+  <div id="consentGate" class="consent-gate">
+    <div class="consent-sheet">
+      <div class="consent-scroll">
+        <h2 class="consent-title" data-i18n="consentTitle"></h2>
+        <p class="consent-p" data-i18n="consentP1"></p>
+        <p class="consent-p" data-i18n="consentP2"></p>
+        <p class="consent-p" data-i18n="consentP3"></p>
+      </div>
+      <div class="consent-actions">
+        <button type="button" class="consent-btn consent-primary" id="consentAccept" data-i18n="consentAccept"></button>
+        <button type="button" class="consent-btn consent-primary" id="consentContinue" data-i18n="consentContinue"></button>
+        <button type="button" class="consent-btn consent-ghost" id="consentCustom" data-i18n="consentCustom"></button>
+      </div>
+    </div>
+  </div>
 
   <div class="lang-toggle" role="group" aria-label="Lingua">
     <button type="button" id="btn-it" class="active" aria-pressed="true">IT</button>
@@ -3482,6 +3509,13 @@
       profileTerms: "Termini e condizioni",
       profileVersion: "Versione app",
       profileLogout: "Esci",
+      consentTitle: "Prima di procedere: trattamento dei tuoi dati",
+      consentP1: "Between, in qualità di gestore della piattaforma, tratta i tuoi dati per fornirti i servizi di coordinamento delle cure, in collaborazione con la tua Azienda ULSS e con il Fascicolo Sanitario Elettronico della Regione Veneto.",
+      consentP2: "Alcuni trattamenti sono tecnicamente necessari per far funzionare il servizio, altri vengono effettuati solo con il tuo consenso, per esempio per migliorare l'esperienza d'uso o per produrre statistiche aggregate e anonime. Alla voce Personalizza la scelta puoi gestire singolarmente ogni finalità.",
+      consentP3: "Scegliendo Continua senza accettare puoi proseguire usando solo i trattamenti necessari. Puoi modificare le tue preferenze in qualsiasi momento dalla sezione Profilo.",
+      consentAccept: "Accetta",
+      consentContinue: "Continua senza accettare",
+      consentCustom: "Personalizza la scelta",
       planMedsTitle: "Farmaci del giorno",
       planApptTitle: "Calendario Appuntamenti",
       planProposalsTitle: "Proposte dal caregiver",
@@ -3751,6 +3785,13 @@
       profileTerms: "Terms and conditions",
       profileVersion: "App version",
       profileLogout: "Log out",
+      consentTitle: "Before you continue: how we handle your data",
+      consentP1: "Between, as the platform operator, processes your data to provide care coordination services, together with your local health authority and the Veneto Region's Electronic Health Record.",
+      consentP2: "Some processing is technically necessary to run the service, while other processing is carried out only with your consent, for example to improve your experience or to produce aggregated, anonymous statistics. Under Customise choices you can manage each purpose individually.",
+      consentP3: "By choosing Continue without accepting you can proceed using only the necessary processing. You can change your preferences at any time from the Profile section.",
+      consentAccept: "Accept",
+      consentContinue: "Continue without accepting",
+      consentCustom: "Customise choices",
       planMedsTitle: "Daily medication",
       planApptTitle: "Appointments Calendar",
       planProposalsTitle: "Caregiver proposals",
@@ -4881,6 +4922,24 @@
   applyLanguage("it");
   renderPatientData();
   setupTimelineDrag();
+
+  // Gate consenso all'avvio: una volta per sessione del browser. I tre bottoni
+  // chiudono il gate e fanno entrare nell'app. Sempre rileggibile da Profilo.
+  (function(){
+    var gate = document.getElementById("consentGate");
+    if(!gate) return;
+    var seen = false;
+    try { seen = sessionStorage.getItem("betweenConsent") === "1"; } catch(e){}
+    if(seen){ gate.classList.add("is-hidden"); return; }
+    var dismiss = function(){
+      gate.classList.add("is-hidden");
+      try { sessionStorage.setItem("betweenConsent", "1"); } catch(e){}
+    };
+    ["consentAccept","consentContinue","consentCustom"].forEach(function(id){
+      var b = document.getElementById(id);
+      if(b) b.addEventListener("click", dismiss);
+    });
+  })();
 })();
   </script>
 </body>
