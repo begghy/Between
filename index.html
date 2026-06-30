@@ -686,6 +686,16 @@
     .plan-slot-label { font-size: 14px; font-weight: 650; color: var(--muted); margin: 14px 0 8px; }
     .med-undo { font-size: 12px; color: var(--accent); cursor: pointer; margin-left: auto; padding-left: 12px; white-space: nowrap; text-decoration: none; display: inline-block; }
     .med-row.done .med-undo { opacity: 1 !important; color: var(--accent) !important; font-weight: 600; }
+    /* Piano — appuntamenti come lista verticale stile Notion */
+    .appt-list { margin-top: 4px; }
+    .appt-item { display: flex; gap: 12px; padding: 12px 4px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .appt-item:last-child { border-bottom: none; }
+    .appt-dot { flex: 0 0 auto; width: 10px; height: 10px; border-radius: 50%; margin-top: 5px; }
+    .appt-body { display: flex; flex-direction: column; gap: 2px; }
+    .appt-when { font-size: 12px; font-weight: 600; color: var(--muted); letter-spacing: 0.02em; }
+    .appt-title { font-size: 15px; font-weight: 600; color: var(--text); }
+    .appt-where { font-size: 12px; color: var(--muted2); }
+    .appt-tag { display: inline-block; margin-top: 6px; width: fit-content; font-size: 11px; font-weight: 600; color: var(--accent); background: rgba(74,127,212,0.14); padding: 3px 9px; border-radius: 999px; }
 
     /* tab bar */
     .tab-bar {
@@ -1841,6 +1851,8 @@
                   <p class="section-kicker" data-i18n="tabPlan"></p>
                   <p class="plan-subhead" data-i18n="planMedsTitle"></p>
                   <div id="planMeds"></div>
+                  <p class="plan-subhead" data-i18n="planApptTitle"></p>
+                  <div id="planAppts" class="appt-list"></div>
                 </div>
                 <div class="tab-panel" data-panel="messaggi" hidden><p class="section-kicker" data-i18n="tabMessages"></p></div>
                 <div class="tab-panel" data-panel="profilo" hidden><p class="section-kicker" data-i18n="tabProfile"></p></div>
@@ -3112,6 +3124,8 @@
       tabMessages: "Messaggi",
       tabProfile: "Profilo",
       planMedsTitle: "Farmaci del giorno",
+      planApptTitle: "Appuntamenti",
+      apptAccompaniment: "Con accompagnatore",
       planSlotMorning: "Mattina",
       planSlotAfternoon: "Pomeriggio",
       planSlotEvening: "Sera",
@@ -3337,6 +3351,8 @@
       tabMessages: "Messages",
       tabProfile: "Profile",
       planMedsTitle: "Daily medication",
+      planApptTitle: "Appointments",
+      apptAccompaniment: "With companion",
       planSlotMorning: "Morning",
       planSlotAfternoon: "Afternoon",
       planSlotEvening: "Evening",
@@ -3704,6 +3720,46 @@
           });
           planHost.appendChild(row);
         });
+      });
+    }
+
+    // --- Piano: appuntamenti come lista verticale stile Notion ---
+    // Sola visualizzazione: pallino colorato per tipo, data, titolo, luogo e
+    // tag accompagnatore. Mostra tutti gli appuntamenti in ordine.
+    var apptListHost = document.getElementById("planAppts");
+    if (apptListHost) {
+      apptListHost.innerHTML = "";
+      // palette tenue coerente col tema scuro (toni che si sposano con --accent)
+      var apptDotColors = ["#4a7fd4", "#5bb3a6", "#d4a24a", "#b06ac9"];
+      PATIENT_DATA.appointments.forEach(function (app, i) {
+        var item = document.createElement("div");
+        item.className = "appt-item";
+        var dot = document.createElement("span");
+        dot.className = "appt-dot";
+        dot.style.background = apptDotColors[i % apptDotColors.length];
+        var body = document.createElement("div");
+        body.className = "appt-body";
+        var when = document.createElement("div");
+        when.className = "appt-when";
+        when.textContent = (L === "en") ? app.whenEn : app.when;
+        var title = document.createElement("div");
+        title.className = "appt-title";
+        title.textContent = (L === "en") ? app.titleEn : app.title;
+        var where = document.createElement("div");
+        where.className = "appt-where";
+        where.textContent = (L === "en") ? app.whereEn : app.where;
+        body.appendChild(when);
+        body.appendChild(title);
+        body.appendChild(where);
+        if (app.accompaniment) {
+          var tag = document.createElement("span");
+          tag.className = "appt-tag";
+          tag.textContent = STRINGS[L].apptAccompaniment;
+          body.appendChild(tag);
+        }
+        item.appendChild(dot);
+        item.appendChild(body);
+        apptListHost.appendChild(item);
       });
     }
   }
