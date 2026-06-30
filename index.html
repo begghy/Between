@@ -683,6 +683,15 @@
     /* ===== Piano — farmaci per fascia oraria ===== */
     .plan-subhead { font-size: 13px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted2); margin: 18px 0 10px; }
     .plan-slot-label { font-size: 14px; font-weight: 650; color: var(--muted); margin: 14px 0 8px; }
+    .proposal-card{padding:14px 16px;margin-bottom:10px;transition:opacity .3s ease,transform .3s ease;}
+    .proposal-card.removing{opacity:0;transform:translateY(-6px);}
+    .proposal-when{font-size:12px;color:var(--accent);font-weight:600;margin-bottom:2px;}
+    .proposal-title{font-size:15px;font-weight:600;color:var(--text);}
+    .proposal-where{font-size:12px;color:var(--muted);margin-top:2px;}
+    .proposal-actions{display:flex;gap:8px;margin-top:12px;}
+    .proposal-btn{flex:1;padding:9px;border-radius:12px;border:none;font-size:13px;font-weight:600;cursor:pointer;}
+    .proposal-accept{background:var(--accent);color:#fff;}
+    .proposal-reject{background:var(--glass);color:var(--text);border:1px solid rgba(255,255,255,var(--glass-border));}
     .med-name { font-size: 16px; font-weight: 500; }
     .med-undo { font-size: 14px; font-weight: 600; color: var(--accent); cursor: pointer; margin-left: auto; padding-left: 12px; white-space: nowrap; text-decoration: none; display: inline-block; }
     .med-row.done .med-undo { opacity: 1 !important; color: var(--accent) !important; font-weight: 600; }
@@ -2022,6 +2031,8 @@
                   <p class="section-kicker" data-i18n="tabPlan"></p>
                   <p class="plan-subhead" data-i18n="planMedsTitle"></p>
                   <div id="planMeds"></div>
+                  <p class="plan-subhead" id="planProposalsHead" data-i18n="planProposalsTitle" hidden></p>
+                  <div id="planProposals"></div>
                   <p class="plan-subhead" data-i18n="planApptTitle"></p>
                   <div id="planAppts" class="appt-list"></div>
                   <div id="planTimeline" class="appt-timeline" aria-hidden="true"></div>
@@ -3374,6 +3385,9 @@
       tabProfile: "Profilo",
       planMedsTitle: "Farmaci del giorno",
       planApptTitle: "Calendario Appuntamenti",
+      planProposalsTitle: "Proposte dal caregiver",
+      proposalAccept: "Accetta",
+      proposalReject: "Rifiuta",
       apptAccompaniment: "Con accompagnatore",
       planSlotMorning: "Mattina",
       planSlotAfternoon: "Pomeriggio",
@@ -3617,6 +3631,9 @@
       tabProfile: "Profile",
       planMedsTitle: "Daily medication",
       planApptTitle: "Appointments Calendar",
+      planProposalsTitle: "Caregiver proposals",
+      proposalAccept: "Accept",
+      proposalReject: "Decline",
       apptAccompaniment: "With companion",
       planSlotMorning: "Morning",
       planSlotAfternoon: "Afternoon",
@@ -3784,8 +3801,8 @@
       { id: "a17", when: "17 set · 11:00", whenEn: "Sep 17 · 11:00", title: "Valutazione finale del percorso", titleEn: "Final care pathway review", where: "ULSS 6 Euganea · Pad. C, piano 2", whereEn: "ULSS 6 Euganea · Bldg C, 2nd floor", accompaniment: true, datetime: "2026-09-17T11:00", status: "upcoming" }
     ],
     caregiverProposals: [
-      { id: "p1", when: "Sab 16 · 09:30", whenEn: "Sat 16 · 9:30 AM", title: "Controllo pressione a casa", titleEn: "Blood pressure check at home", where: "Proposto da Marco (figlio)", whereEn: "Suggested by Marco (son)" },
-      { id: "p2", when: "Ven 22 · 16:00", whenEn: "Fri 22 · 4:00 PM", title: "Visita dal medico di base", titleEn: "Visit to family doctor", where: "Proposto da Marco (figlio)", whereEn: "Suggested by Marco (son)" }
+      { id: "p1", when: "Sab 4 lug · 09:30", whenEn: "Sat 4 Jul · 9:30 AM", title: "Controllo pressione a casa", titleEn: "Blood pressure check at home", where: "Proposto da Marco (figlio)", whereEn: "Suggested by Marco (son)", datetime: "2026-07-04T09:30", status: "upcoming" },
+      { id: "p2", when: "Ven 24 lug · 16:00", whenEn: "Fri 24 Jul · 4:00 PM", title: "Visita dal medico di base", titleEn: "Visit to family doctor", where: "Proposto da Marco (figlio)", whereEn: "Suggested by Marco (son)", datetime: "2026-07-24T16:00", status: "upcoming" }
     ],
     conversations: [
       {
@@ -3905,7 +3922,10 @@
     var apptHost = document.getElementById("homeAppts");
     if (apptHost) {
       apptHost.innerHTML = "";
-      PATIENT_DATA.appointments.slice(0, 3).forEach(function (app) {
+      var todayHome = new Date(); todayHome.setHours(0, 0, 0, 0);
+      PATIENT_DATA.appointments.filter(function (a) {
+        return new Date(a.datetime).getTime() >= todayHome.getTime();
+      }).slice(0, 3).forEach(function (app) {
         var card = document.createElement("div");
         card.className = "glass accent-card";
         var meta = document.createElement("div");
@@ -4015,6 +4035,7 @@
     // --- Piano: appuntamenti come lista verticale stile Notion ---
     // Sola visualizzazione: pallino colorato per tipo, data, titolo, luogo e
     // tag accompagnatore. Mostra tutti gli appuntamenti in ordine.
+    renderProposals();
     var apptListHost = document.getElementById("planAppts");
     if (apptListHost) {
       apptListHost.innerHTML = "";
@@ -4522,6 +4543,80 @@
 
     if(openConvoId) renderThread(openConvoId);
   }
+  function removeProposal(id){
+    PATIENT_DATA.caregiverProposals = (PATIENT_DATA.caregiverProposals || []).filter(function(p){ return p.id !== id; });
+  }
+
+  function insertAppointmentSorted(app){
+    var arr = PATIENT_DATA.appointments;
+    var t = new Date(app.datetime).getTime();
+    var i = 0;
+    while(i < arr.length && new Date(arr[i].datetime).getTime() < t) i++;
+    arr.splice(i, 0, app);
+  }
+
+  function acceptProposal(id, card){
+    if(card) card.classList.add("removing");
+    setTimeout(function(){
+      var p = (PATIENT_DATA.caregiverProposals || []).filter(function(x){ return x.id === id; })[0];
+      if(!p) return;
+      insertAppointmentSorted({
+        id: p.id + "-ok", when: p.when, whenEn: p.whenEn, title: p.title, titleEn: p.titleEn,
+        where: "Confermato · con Marco (figlio)", whereEn: "Confirmed · with Marco (son)",
+        datetime: p.datetime, status: "upcoming", accompaniment: true
+      });
+      removeProposal(id);
+      renderPatientData();
+    }, 300);
+  }
+
+  function rejectProposal(id, card){
+    if(card) card.classList.add("removing");
+    setTimeout(function(){ removeProposal(id); renderPatientData(); }, 300);
+  }
+
+  function renderProposals(){
+    var host = document.getElementById("planProposals");
+    var head = document.getElementById("planProposalsHead");
+    if(!host) return;
+    var L = (document.documentElement.lang === "en") ? "en" : "it";
+    var props = PATIENT_DATA.caregiverProposals || [];
+    host.innerHTML = "";
+    if(head) head.hidden = (props.length === 0);
+    props.forEach(function(p){
+      var card = document.createElement("div");
+      card.className = "glass proposal-card";
+      var when = document.createElement("div");
+      when.className = "proposal-when";
+      when.textContent = (L === "en") ? p.whenEn : p.when;
+      var title = document.createElement("div");
+      title.className = "proposal-title";
+      title.textContent = (L === "en") ? p.titleEn : p.title;
+      var where = document.createElement("div");
+      where.className = "proposal-where";
+      where.textContent = (L === "en") ? p.whereEn : p.where;
+      var actions = document.createElement("div");
+      actions.className = "proposal-actions";
+      var acc = document.createElement("button");
+      acc.type = "button";
+      acc.className = "proposal-btn proposal-accept";
+      acc.textContent = STRINGS[L].proposalAccept;
+      acc.addEventListener("click", function(){ acceptProposal(p.id, card); });
+      var rej = document.createElement("button");
+      rej.type = "button";
+      rej.className = "proposal-btn proposal-reject";
+      rej.textContent = STRINGS[L].proposalReject;
+      rej.addEventListener("click", function(){ rejectProposal(p.id, card); });
+      actions.appendChild(acc);
+      actions.appendChild(rej);
+      card.appendChild(when);
+      card.appendChild(title);
+      card.appendChild(where);
+      card.appendChild(actions);
+      host.appendChild(card);
+    });
+  }
+
   // esposta globale: switchTab vive in un'altra IIFE e la richiama via window
   window.renderPatientData = renderPatientData;
 
