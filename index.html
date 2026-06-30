@@ -3897,8 +3897,10 @@
       var monthsIt = ["gen", "feb", "mar", "apr", "mag", "giu", "lug", "ago", "set", "ott", "nov", "dic"];
       var monthsEn = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
       var months = (L === "en") ? monthsEn : monthsIt;
-      // "Oggi" reale: 30 giugno 2026, separa passato (done/missed) e futuro (upcoming)
-      var todayT = new Date("2026-06-30T00:00").getTime();
+      // "Oggi" reale: data odierna di sistema, aggiornata ogni giorno. Mezzanotte
+      // per stabilità. Separa passato (done/missed) e futuro (upcoming).
+      var todayD = new Date(); todayD.setHours(0, 0, 0, 0);
+      var todayT = todayD.getTime();
       // estremi temporali: includi gli appuntamenti e "oggi", poi margine di 3
       // giorni ai due lati (l'arco ora è di ~6 mesi, serve più respiro ai bordi).
       var times = PATIENT_DATA.appointments.map(function (a) { return new Date(a.datetime).getTime(); });
@@ -4000,6 +4002,16 @@
       });
 
       tlHost.appendChild(track);
+
+      // Centra la vista su "oggi" appena la timeline è visibile (solo desktop:
+      // se nascosta, clientWidth è 0 e si salta). La lettura delle misure subito
+      // dopo l'append forza il reflow, così offset e scrollWidth sono reali.
+      var tlCW = tlHost.clientWidth;
+      if (tlCW > 0) {
+        var todayX = today.offsetLeft + (track.offsetLeft || 0);
+        var tlSW = tlHost.scrollWidth;
+        tlHost.scrollLeft = Math.max(0, Math.min(todayX - tlCW / 2, tlSW - tlCW));
+      }
     }
   }
   // esposta globale: switchTab vive in un'altra IIFE e la richiama via window
