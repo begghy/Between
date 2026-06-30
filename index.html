@@ -722,7 +722,7 @@
     .timeline-track {
       position: relative;
       height: 380px;
-      min-width: 3400px;   /* arco di 6 mesi: track largo per dare respiro ai mesi fitti; oltre si scrolla */
+      min-width: 3800px;   /* arco di 6 mesi: track largo per dare respiro ai mesi fitti; oltre si scrolla */
     }
 
     /* asse centrale orizzontale */
@@ -766,8 +766,9 @@
     }
     .timeline-event.ev-above::after { bottom: -12px; height: 12px; }
     .timeline-event.ev-below::after { top: -12px; height: 12px; }
-    /* eventi sfalsati (offset>0): niente stelo, eviterebbe steli storti che non raggiungono l'asse */
-    .timeline-event.ev-offset::after { display: none; }
+    /* eventi sfalsati (offset>0): stelo allungato per raggiungere comunque l'asse (12 base + 42 offset = 54) */
+    .timeline-event.ev-above.ev-offset::after { bottom: -54px; height: 54px; }
+    .timeline-event.ev-below.ev-offset::after { top: -54px; height: 54px; }
 
     /* pallino con icona di stato */
     .timeline-event .ev-dot {
@@ -3952,7 +3953,7 @@
       var lastAbovePct = -999, lastBelowPct = -999;
       var aboveLevel = 0, belowLevel = 0;
       var MIN_GAP = 4.5;   // % sotto cui due eventi sulla stessa fila sono "vicini"
-      var STEP = 50;       // px del singolo gradino (alternanza a 2 livelli: 0 / 1)
+      var STEP = 42;       // px del singolo gradino (alternanza a 2 livelli: 0 / 1)
       sorted.forEach(function (app, i) {
         var t = new Date(app.datetime).getTime();
         var leftPct = pct(t);
