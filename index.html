@@ -664,7 +664,8 @@
       font-size: 14px;
       line-height: 1.35;
     }
-    .med-row.done { opacity: 0.55; text-decoration: line-through; }
+    .med-row.done { opacity: 0.55; }
+    .med-row.done .med-name { text-decoration: line-through; }
     .sq-check {
       width: 22px;
       height: 22px;
@@ -684,13 +685,7 @@
     .plan-subhead { font-size: 13px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted2); margin: 18px 0 10px; }
     .plan-slot-label { font-size: 14px; font-weight: 650; color: var(--muted); margin: 14px 0 8px; }
     .med-undo { font-size: 12px; color: var(--accent); cursor: pointer; margin-left: auto; padding-left: 12px; white-space: nowrap; text-decoration: none; display: inline-block; }
-    .med-row.done .med-undo {
-      display: inline-block !important;   /* interrompe la propagazione del line-through del genitore */
-      opacity: 1 !important;              /* annulla l'opacity 0.55 della riga done */
-      color: var(--accent) !important;    /* colore acceso, ben visibile */
-      font-weight: 600;
-      position: relative;                 /* assicura che stia sopra, nitido */
-    }
+    .med-row.done .med-undo { opacity: 1 !important; color: var(--accent) !important; font-weight: 600; }
 
     /* tab bar */
     .tab-bar {
@@ -3641,6 +3636,7 @@
         check.className = "sq-check";
         check.innerHTML = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>';
         var label = document.createElement("span");
+        label.className = "med-name";
         label.textContent = med.name + " · " + med.slot + " · " + med.time;
         row.appendChild(check);
         row.appendChild(label);
@@ -3683,6 +3679,7 @@
           check.className = "sq-check";
           check.innerHTML = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>';
           var label = document.createElement("span");
+          label.className = "med-name";
           label.textContent = med.name + " · " + med.time;
           row.appendChild(check);
           row.appendChild(label);
