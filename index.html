@@ -1245,6 +1245,7 @@
     }
     .coach-spotlight.pill { border-radius: 999px; }
     .coach-spotlight.circle { border-radius: 50%; }
+    .coach-spotlight.rect { border-radius: 18px; }
     /* Sottolineatura ambra del passo 1 (giorno) */
     .coach-underline { text-decoration: underline; text-decoration-color: #ffb020; text-underline-offset: 3px; }
     .coach-tooltip {
@@ -2570,7 +2571,7 @@
     { sel: '.header-row .avatar-round',     key: "coachProfile",      shape: "circle" },
     { sel: '.mood-block',                   key: "coachMood",         shape: "pill"   },
     { sel: '.accent-card',                  key: "coachAppointment",  shape: "pill"   },
-    { unionSel: '#homeMeds .med-row',       key: "coachMeds",         shape: "pill"   }
+    { unionSel: '#homeMeds .med-row',       key: "coachMeds",         shape: "rect"   }
   ];
 
   function curLang() { return document.documentElement.lang === "en" ? "en" : "it"; }
