@@ -3799,22 +3799,21 @@
     var tlHost = document.getElementById("planTimeline");
     if (tlHost) {
       tlHost.innerHTML = "";
-      var tlColors = ["#4a7fd4", "#5bb3a6", "#d4a24a", "#b06ac9"];
       var oneDay = 86400000;
       var monthsIt = ["gen", "feb", "mar", "apr", "mag", "giu", "lug", "ago", "set", "ott", "nov", "dic"];
       var monthsEn = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
       var months = (L === "en") ? monthsEn : monthsIt;
-      // "Oggi" della narrazione: data fissa coerente con la Home (giorno 2)
-      var todayT = new Date("2026-03-14T00:00").getTime();
-      // estremi temporali: includi gli appuntamenti e "oggi", poi margine 1 giorno
-      // ai due lati, così gli eventi (e la linea Oggi) non stanno sul bordo.
+      // "Oggi" reale: 30 giugno 2026, separa passato (done/missed) e futuro (upcoming)
+      var todayT = new Date("2026-06-30T00:00").getTime();
+      // estremi temporali: includi gli appuntamenti e "oggi", poi margine di 3
+      // giorni ai due lati (l'arco ora è di ~6 mesi, serve più respiro ai bordi).
       var times = PATIENT_DATA.appointments.map(function (a) { return new Date(a.datetime).getTime(); });
       times.push(todayT);
       var minT = Math.min.apply(null, times);
       var maxT = Math.max.apply(null, times);
       var floorDay = function (t) { var d = new Date(t); d.setHours(0, 0, 0, 0); return d.getTime(); };
-      var rangeStart = floorDay(minT) - oneDay;
-      var rangeEnd = floorDay(maxT) + oneDay;
+      var rangeStart = floorDay(minT) - oneDay * 3;
+      var rangeEnd = floorDay(maxT) + oneDay * 3;
       var span = rangeEnd - rangeStart;
       var pct = function (t) { return ((t - rangeStart) / span) * 100; };
 
@@ -3826,14 +3825,19 @@
       axis.className = "timeline-axis";
       track.appendChild(axis);
 
-      // tick dei giorni (ogni 2 giorni) con etichetta breve "15 mar"
-      for (var d = rangeStart; d <= rangeEnd; d += oneDay * 2) {
-        var dd = new Date(d);
-        var tick = document.createElement("div");
-        tick.className = "timeline-daytick";
-        tick.style.left = pct(d) + "%";
-        tick.textContent = dd.getDate() + " " + months[dd.getMonth()];
-        track.appendChild(tick);
+      // tick dei MESI: un segno al primo di ogni mese nell'intervallo, etichetta
+      // breve mese+anno (es. "mar 26"). Più leggibile dei tick giornalieri su 6 mesi.
+      var mTick = new Date(new Date(rangeStart).getFullYear(), new Date(rangeStart).getMonth(), 1, 0, 0, 0, 0);
+      while (mTick.getTime() <= rangeEnd) {
+        var mt = mTick.getTime();
+        if (mt >= rangeStart) {
+          var monthtick = document.createElement("div");
+          monthtick.className = "timeline-monthtick";
+          monthtick.style.left = pct(mt) + "%";
+          monthtick.textContent = months[mTick.getMonth()] + " " + String(mTick.getFullYear()).slice(2);
+          track.appendChild(monthtick);
+        }
+        mTick = new Date(mTick.getFullYear(), mTick.getMonth() + 1, 1, 0, 0, 0, 0);
       }
 
       // linea verticale "Oggi"
@@ -3842,15 +3846,28 @@
       today.style.left = pct(todayT) + "%";
       track.appendChild(today);
 
-      // eventi posizionati in proporzione alla data
-      PATIENT_DATA.appointments.forEach(function (app, i) {
+      // eventi: ordinati per data, alternati sopra/sotto l'asse (anti-accavallamento),
+      // con colore e icona secondo lo stato (done ✓ verde, missed ✗ rosso, upcoming blu).
+      var statusColors = { done: "#3aa76d", missed: "#e5484d", upcoming: "#4a7fd4" };
+      var iconDone = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>';
+      var iconMissed = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+      var sorted = PATIENT_DATA.appointments.slice().sort(function (a, b) {
+        return new Date(a.datetime).getTime() - new Date(b.datetime).getTime();
+      });
+      sorted.forEach(function (app, i) {
         var t = new Date(app.datetime).getTime();
         var ev = document.createElement("div");
-        ev.className = "timeline-event";
+        ev.className = "timeline-event " + (i % 2 === 0 ? "ev-above" : "ev-below") + " ev-" + app.status;
         ev.style.left = pct(t) + "%";
         var dot = document.createElement("div");
         dot.className = "ev-dot";
-        dot.style.background = tlColors[i % tlColors.length];
+        dot.style.background = statusColors[app.status] || "#4a7fd4";
+        if (app.status === "done" || app.status === "missed") {
+          var icon = document.createElement("span");
+          icon.className = "ev-icon";
+          icon.innerHTML = (app.status === "done") ? iconDone : iconMissed;
+          dot.appendChild(icon);
+        }
         var when = document.createElement("div");
         when.className = "ev-when";
         when.textContent = (L === "en") ? app.whenEn : app.when;
