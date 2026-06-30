@@ -1598,13 +1598,19 @@
     .msg-convo-preview{font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:3px;}
     .msg-unread{width:9px;height:9px;border-radius:50%;background:var(--accent);flex-shrink:0;}
     /* Messaggi — header chat */
-    .msg-chat-view{display:flex;flex-direction:column;}
+    .msg-chat-view:not([hidden]){display:flex;flex-direction:column;}
     .msg-thread-header{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
     .msg-back{width:32px;height:32px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:none;border:none;color:var(--text);cursor:pointer;padding:0;}
     .msg-back svg{width:22px;height:22px;}
     .msg-thread-peer{display:flex;align-items:center;gap:10px;min-width:0;}
     .msg-peer-name{font-size:16px;font-weight:650;color:var(--text);}
     .msg-peer-role{font-size:12px;color:var(--muted);}
+    /* Messaggi — composer */
+    .msg-composer{display:flex;align-items:center;gap:8px;margin-top:12px;padding-top:10px;}
+    .msg-input{flex:1;min-width:0;padding:11px 14px;border-radius:20px;border:1px solid rgba(255,255,255,var(--glass-border));background:var(--glass);color:var(--text);font-size:15px;outline:none;}
+    .msg-input::placeholder{color:var(--muted2);}
+    .msg-send{width:40px;height:40px;flex-shrink:0;border-radius:50%;border:none;background:var(--accent);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+    .msg-send svg{width:20px;height:20px;}
   </style>
 </head>
 <body>
@@ -2012,6 +2018,12 @@
                       </div>
                     </div>
                     <div id="msgThread" class="msg-thread"></div>
+                    <div id="msgComposer" class="msg-composer">
+                      <input type="text" id="msgInput" class="msg-input" data-i18n-placeholder="msgPlaceholder">
+                      <button type="button" id="msgSend" class="msg-send">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+                      </button>
+                    </div>
                   </div>
                 </div>
                 <div class="tab-panel" data-panel="profilo" hidden><p class="section-kicker" data-i18n="tabProfile"></p></div>
@@ -3283,6 +3295,8 @@
       tabMessages: "Messaggi",
       messagesSubhead: "Canale con il tuo team di cura",
       msgBack: "Indietro",
+      msgPlaceholder: "Scrivi un messaggio…",
+      msgSend: "Invia",
       tabProfile: "Profilo",
       planMedsTitle: "Farmaci del giorno",
       planApptTitle: "Calendario Appuntamenti",
@@ -3512,6 +3526,8 @@
       tabMessages: "Messages",
       messagesSubhead: "Channel with your care team",
       msgBack: "Back",
+      msgPlaceholder: "Type a message…",
+      msgSend: "Send",
       tabProfile: "Profile",
       planMedsTitle: "Daily medication",
       planApptTitle: "Appointments Calendar",
@@ -3688,21 +3704,14 @@
     conversations: [
       {
         id: "caregiver", kind: "person", name: "Marco Colombo", role: "Figlio · Caregiver",
-        messages: [
-          { date: "20 giugno 2026, 18:20", author: "Marco Colombo", fromPatient: false, text: "Ciao mamma, ti ho aggiornato il calendario con la visita di luglio. Se ti serve qualcosa scrivimi pure qui." },
-          { date: "20 giugno 2026, 19:05", author: "Elena Colombo", fromPatient: true, text: "Grazie Marco. Per ora tutto a posto." }
-        ]
+        messages: []
       },
       {
         id: "doctor", kind: "person", name: "Dr. Bianchi", role: "Neurologo",
-        messages: [
-          { date: "12 marzo 2026, 16:45", author: "Dr. Bianchi", fromPatient: false, text: "Buongiorno Elena, il suo accesso a Between è attivo. Qui può vedere il piano di cura e scrivermi per qualunque dubbio. Il primo controllo è il 26 marzo." },
-          { date: "13 marzo 2026, 10:15", author: "Dr. Bianchi", fromPatient: false, text: "Come sta oggi? Qualche difficoltà con i farmaci? Mi faccia sapere." },
-          { date: "13 marzo 2026, 11:30", author: "Elena Colombo", fromPatient: true, text: "Bene, grazie. Nessun problema. Solo un po' di stanchezza." }
-        ]
+        messages: []
       },
       {
-        id: "mybetween", kind: "bot", name: "My-Between", role: "Assistente ULSS 6 Euganea",
+        id: "mybetween", kind: "bot", name: "My-Between", role: "Assistente ULSS 6 Euganea", unread: true,
         messages: [
           { date: "Oggi", author: "My-Between", fromPatient: false, text: "Salve Elena, sono My-Between, l'assistente digitale della sua ULSS. Posso aiutarla con farmaci, appuntamenti, documenti del Fascicolo, oppure metterla in contatto con un operatore. Come posso aiutarla?" }
         ]
@@ -4143,6 +4152,25 @@
     renderMessages();
   }
 
+  function msgNow(){
+    var d = new Date();
+    var hh = ("0" + d.getHours()).slice(-2);
+    var mm = ("0" + d.getMinutes()).slice(-2);
+    return "Oggi, " + hh + ":" + mm;
+  }
+
+  function sendMessage(){
+    var input = document.getElementById("msgInput");
+    if(!input || !openConvoId) return;
+    var text = input.value.trim();
+    if(!text) return;
+    var c = msgFindConvo(openConvoId);
+    if(!c) return;
+    c.messages.push({ date: msgNow(), author: "Elena Colombo", fromPatient: true, text: text });
+    input.value = "";
+    renderThread(openConvoId);
+  }
+
   function renderMessages(){
     var inbox = document.getElementById("msgConvoList");
     if(!inbox) return;
@@ -4193,6 +4221,17 @@
     if(backBtn){
       if(!backBtn.dataset.ready){ backBtn.dataset.ready = "1"; backBtn.addEventListener("click", closeConversation); }
       backBtn.setAttribute("aria-label", STRINGS[L].msgBack);
+    }
+
+    var sendBtn = document.getElementById("msgSend");
+    var input = document.getElementById("msgInput");
+    if(sendBtn && input){
+      if(!sendBtn.dataset.ready){
+        sendBtn.dataset.ready = "1";
+        sendBtn.addEventListener("click", sendMessage);
+        input.addEventListener("keydown", function(e){ if(e.key === "Enter"){ e.preventDefault(); sendMessage(); } });
+      }
+      sendBtn.setAttribute("aria-label", STRINGS[L].msgSend);
     }
 
     if(openConvoId) renderThread(openConvoId);
