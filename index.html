@@ -700,17 +700,103 @@
     .appt-timeline { display: none; }
     body.mode-app:not(.is-mobile) #planAppts { display: none; }
     body.mode-app:not(.is-mobile) .appt-timeline { display: block; }
-    .appt-timeline { position: relative; margin-top: 8px; padding: 28px 0 16px; overflow-x: auto; }
-    .timeline-track { position: relative; height: 130px; min-width: 100%; }
-    .timeline-axis { position: absolute; top: 22px; left: 0; right: 0; height: 1px; background: rgba(255,255,255,0.12); }
-    .timeline-daytick { position: absolute; top: 14px; transform: translateX(-50%); font-size: 11px; color: var(--muted2); white-space: nowrap; }
-    .timeline-daytick::after { content: ""; position: absolute; left: 50%; top: 8px; width: 1px; height: 8px; background: rgba(255,255,255,0.12); }
-    .timeline-today { position: absolute; top: 6px; bottom: 6px; width: 2px; background: #e5484d; }
-    .timeline-today::after { content: "Oggi"; position: absolute; top: -16px; left: 50%; transform: translateX(-50%); font-size: 10px; font-weight: 700; color: #e5484d; white-space: nowrap; }
-    .timeline-event { position: absolute; top: 40px; transform: translateX(-50%); width: 150px; cursor: default; }
-    .timeline-event .ev-dot { width: 10px; height: 10px; border-radius: 50%; margin: 0 auto 6px; }
-    .timeline-event .ev-when { font-size: 10px; font-weight: 600; color: var(--muted); text-align: center; }
-    .timeline-event .ev-title { font-size: 12px; font-weight: 600; color: var(--text); text-align: center; line-height: 1.25; }
+
+    /* larghezza piena centrata: esce dal contenitore 720px verso ~1000px */
+    .appt-timeline {
+      position: relative;
+      width: 1000px;
+      max-width: 92vw;
+      margin: 12px auto 0;
+      margin-left: calc(-1 * ((1000px - 100%) / 2));  /* sfonda il 720px e ricentra */
+      padding: 12px 0 8px;
+      overflow-x: auto;
+      overflow-y: visible;
+    }
+    @media (max-width: 1080px) {
+      .appt-timeline { width: 100%; margin-left: auto; }  /* fallback se lo spazio non basta */
+    }
+
+    .timeline-track {
+      position: relative;
+      height: 280px;
+      min-width: 880px;   /* garantisce respiro orizzontale; oltre si scrolla */
+    }
+
+    /* asse centrale orizzontale */
+    .timeline-axis {
+      position: absolute; top: 140px; left: 0; right: 0;
+      height: 1px; background: rgba(255,255,255,0.14);
+    }
+
+    /* tick dei mesi: nuvola glass sopra l'asse */
+    .timeline-monthtick {
+      position: absolute; top: 124px; transform: translateX(-50%);
+      font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase;
+      color: var(--muted); white-space: nowrap;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.08);
+      backdrop-filter: blur(8px);
+      padding: 3px 10px; border-radius: 999px;
+    }
+
+    /* linea Oggi */
+    .timeline-today { position: absolute; top: 18px; bottom: 18px; width: 2px; background: #e5484d; border-radius: 2px; }
+    .timeline-today::after {
+      content: "Oggi"; position: absolute; top: -16px; left: 50%; transform: translateX(-50%);
+      font-size: 10px; font-weight: 700; color: #e5484d; white-space: nowrap;
+    }
+
+    /* evento: posizionato sull'asse, poi spostato sopra o sotto */
+    .timeline-event {
+      position: absolute; transform: translateX(-50%);
+      width: 132px; cursor: default;
+      display: flex; flex-direction: column; align-items: center; gap: 6px;
+      transition: transform .16s ease;
+    }
+    .timeline-event.ev-above { bottom: 152px; }  /* sopra l'asse (asse a 140) */
+    .timeline-event.ev-below { top: 152px; }      /* sotto l'asse */
+
+    /* stelo che collega l'evento all'asse */
+    .timeline-event::after {
+      content: ""; position: absolute; left: 50%; transform: translateX(-50%);
+      width: 1px; background: rgba(255,255,255,0.16);
+    }
+    .timeline-event.ev-above::after { bottom: -12px; height: 12px; }
+    .timeline-event.ev-below::after { top: -12px; height: 12px; }
+
+    /* pallino con icona di stato */
+    .timeline-event .ev-dot {
+      width: 22px; height: 22px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      flex: 0 0 auto; box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+    .timeline-event .ev-icon { display: flex; align-items: center; justify-content: center; }
+
+    /* data in nuvola glass */
+    .timeline-event .ev-when {
+      font-size: 10px; font-weight: 600; color: var(--muted); text-align: center; white-space: nowrap;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.08);
+      padding: 2px 8px; border-radius: 999px;
+    }
+
+    /* titolo */
+    .timeline-event .ev-title {
+      font-size: 12px; font-weight: 600; color: var(--text); text-align: center; line-height: 1.25;
+    }
+
+    /* eventi passati mancati: titolo più tenue */
+    .timeline-event.ev-missed .ev-title { color: var(--muted); }
+
+    /* ordine verticale dei figli: il dot deve sempre stare vicino all'asse.
+       JS genera dot, data, titolo. Per ev-above (dot in basso) → column-reverse;
+       per ev-below (dot in alto, vicino all'asse) → column. */
+    .timeline-event.ev-above { flex-direction: column-reverse; }
+    .timeline-event.ev-below { flex-direction: column; }
+
+    /* hover: ingrandisce ed evidenzia */
+    .timeline-event:hover { transform: translateX(-50%) scale(1.12); z-index: 5; }
+    .timeline-event:hover .ev-title { color: var(--text); }
 
     /* tab bar */
     .tab-bar {
