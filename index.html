@@ -696,6 +696,21 @@
     .appt-title { font-size: 15px; font-weight: 600; color: var(--text); }
     .appt-where { font-size: 12px; color: var(--muted2); }
     .appt-tag { display: inline-block; margin-top: 6px; width: fit-content; font-size: 11px; font-weight: 600; color: var(--accent); background: rgba(74,127,212,0.14); padding: 3px 9px; border-radius: 999px; }
+    /* Timeline orizzontale appuntamenti — solo desktop (mobile: lista verticale) */
+    .appt-timeline { display: none; }
+    body.mode-app:not(.is-mobile) #planAppts { display: none; }
+    body.mode-app:not(.is-mobile) .appt-timeline { display: block; }
+    .appt-timeline { position: relative; margin-top: 8px; padding: 28px 0 16px; overflow-x: auto; }
+    .timeline-track { position: relative; height: 130px; min-width: 100%; }
+    .timeline-axis { position: absolute; top: 22px; left: 0; right: 0; height: 1px; background: rgba(255,255,255,0.12); }
+    .timeline-daytick { position: absolute; top: 14px; transform: translateX(-50%); font-size: 11px; color: var(--muted2); white-space: nowrap; }
+    .timeline-daytick::after { content: ""; position: absolute; left: 50%; top: 8px; width: 1px; height: 8px; background: rgba(255,255,255,0.12); }
+    .timeline-today { position: absolute; top: 6px; bottom: 6px; width: 2px; background: #e5484d; }
+    .timeline-today::after { content: "Oggi"; position: absolute; top: -16px; left: 50%; transform: translateX(-50%); font-size: 10px; font-weight: 700; color: #e5484d; white-space: nowrap; }
+    .timeline-event { position: absolute; top: 40px; transform: translateX(-50%); width: 150px; cursor: default; }
+    .timeline-event .ev-dot { width: 10px; height: 10px; border-radius: 50%; margin: 0 auto 6px; }
+    .timeline-event .ev-when { font-size: 10px; font-weight: 600; color: var(--muted); text-align: center; }
+    .timeline-event .ev-title { font-size: 12px; font-weight: 600; color: var(--text); text-align: center; line-height: 1.25; }
 
     /* tab bar */
     .tab-bar {
@@ -1853,6 +1868,7 @@
                   <div id="planMeds"></div>
                   <p class="plan-subhead" data-i18n="planApptTitle"></p>
                   <div id="planAppts" class="appt-list"></div>
+                  <div id="planTimeline" class="appt-timeline" aria-hidden="true"></div>
                 </div>
                 <div class="tab-panel" data-panel="messaggi" hidden><p class="section-kicker" data-i18n="tabMessages"></p></div>
                 <div class="tab-panel" data-panel="profilo" hidden><p class="section-kicker" data-i18n="tabProfile"></p></div>
@@ -3761,6 +3777,80 @@
         item.appendChild(body);
         apptListHost.appendChild(item);
       });
+    }
+
+    // --- Piano: timeline orizzontale (solo desktop, posizioni proporzionali) ---
+    // Stessa sorgente (PATIENT_DATA.appointments con datetime ISO). Gli eventi
+    // sono collocati sull'asse del tempo in proporzione alle date reali. Visibile
+    // solo su desktop via CSS; il render gira comunque (innocuo se nascosto).
+    var tlHost = document.getElementById("planTimeline");
+    if (tlHost) {
+      tlHost.innerHTML = "";
+      var tlColors = ["#4a7fd4", "#5bb3a6", "#d4a24a", "#b06ac9"];
+      var oneDay = 86400000;
+      var monthsIt = ["gen", "feb", "mar", "apr", "mag", "giu", "lug", "ago", "set", "ott", "nov", "dic"];
+      var monthsEn = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      var months = (L === "en") ? monthsEn : monthsIt;
+      // "Oggi" della narrazione: data fissa coerente con la Home (giorno 2)
+      var todayT = new Date("2026-03-14T00:00").getTime();
+      // estremi temporali: includi gli appuntamenti e "oggi", poi margine 1 giorno
+      // ai due lati, così gli eventi (e la linea Oggi) non stanno sul bordo.
+      var times = PATIENT_DATA.appointments.map(function (a) { return new Date(a.datetime).getTime(); });
+      times.push(todayT);
+      var minT = Math.min.apply(null, times);
+      var maxT = Math.max.apply(null, times);
+      var floorDay = function (t) { var d = new Date(t); d.setHours(0, 0, 0, 0); return d.getTime(); };
+      var rangeStart = floorDay(minT) - oneDay;
+      var rangeEnd = floorDay(maxT) + oneDay;
+      var span = rangeEnd - rangeStart;
+      var pct = function (t) { return ((t - rangeStart) / span) * 100; };
+
+      var track = document.createElement("div");
+      track.className = "timeline-track";
+
+      // asse orizzontale
+      var axis = document.createElement("div");
+      axis.className = "timeline-axis";
+      track.appendChild(axis);
+
+      // tick dei giorni (ogni 2 giorni) con etichetta breve "15 mar"
+      for (var d = rangeStart; d <= rangeEnd; d += oneDay * 2) {
+        var dd = new Date(d);
+        var tick = document.createElement("div");
+        tick.className = "timeline-daytick";
+        tick.style.left = pct(d) + "%";
+        tick.textContent = dd.getDate() + " " + months[dd.getMonth()];
+        track.appendChild(tick);
+      }
+
+      // linea verticale "Oggi"
+      var today = document.createElement("div");
+      today.className = "timeline-today";
+      today.style.left = pct(todayT) + "%";
+      track.appendChild(today);
+
+      // eventi posizionati in proporzione alla data
+      PATIENT_DATA.appointments.forEach(function (app, i) {
+        var t = new Date(app.datetime).getTime();
+        var ev = document.createElement("div");
+        ev.className = "timeline-event";
+        ev.style.left = pct(t) + "%";
+        var dot = document.createElement("div");
+        dot.className = "ev-dot";
+        dot.style.background = tlColors[i % tlColors.length];
+        var when = document.createElement("div");
+        when.className = "ev-when";
+        when.textContent = (L === "en") ? app.whenEn : app.when;
+        var title = document.createElement("div");
+        title.className = "ev-title";
+        title.textContent = (L === "en") ? app.titleEn : app.title;
+        ev.appendChild(dot);
+        ev.appendChild(when);
+        ev.appendChild(title);
+        track.appendChild(ev);
+      });
+
+      tlHost.appendChild(track);
     }
   }
   // esposta globale: switchTab vive in un'altra IIFE e la richiama via window
