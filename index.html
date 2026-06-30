@@ -2654,6 +2654,7 @@
     if (sc) sc.scrollTop = 0;
     // rigenera farmaci/appuntamenti così la sezione riflette lo stato corrente
     if (window.renderPatientData) window.renderPatientData();
+    if (panelName === "messaggi" && window.msgOnEnterMessaggi) window.msgOnEnterMessaggi();
   }
   window.switchTab = switchTab;
   // wiring tab a7
@@ -4219,6 +4220,30 @@
     input.value = "";
     renderThread(openConvoId);
   }
+
+  var msgIncomingDone = false;
+
+  function msgPushIncoming(convoId, text){
+    var c = msgFindConvo(convoId);
+    if(!c) return;
+    c.messages.push({ date: msgNow(), author: c.name, fromPatient: false, text: text });
+    if(openConvoId === convoId){ renderThread(convoId); }
+    else { c.unread = true; }
+    renderMessages();
+  }
+
+  function msgOnEnterMessaggi(){
+    if(msgIncomingDone) return;
+    msgIncomingDone = true;
+    setTimeout(function(){
+      msgPushIncoming("caregiver", "Ciao mamma, come stai oggi? Volevo sapere se va tutto bene.");
+    }, 3000);
+    setTimeout(function(){
+      msgPushIncoming("caregiver", "Ricordati la visita neurologica trimestrale del 9 luglio alle 10:30. Ti accompagno io, passo a prenderti.");
+      msgPushIncoming("doctor", "Promemoria dal suo neurologo: visita neurologica trimestrale il 9 luglio alle 10:30. A presto.");
+    }, 4500);
+  }
+  window.msgOnEnterMessaggi = msgOnEnterMessaggi;
 
   function renderMessages(){
     var inbox = document.getElementById("msgConvoList");
