@@ -1577,6 +1577,15 @@
     body.is-mobile.mode-app .screen-package.active .scroll-area {
       top: env(safe-area-inset-top) !important;
     }
+    /* ===== Messaggi — thread chat read-only ===== */
+    .msg-thread{display:flex;flex-direction:column;gap:14px;padding-top:4px;}
+    .msg-item{display:flex;flex-direction:column;max-width:min(82%,520px);}
+    .msg-item.from-doctor{align-self:flex-start;align-items:flex-start;}
+    .msg-item.from-patient{align-self:flex-end;align-items:flex-end;}
+    .msg-meta{font-size:12px;color:var(--muted);margin:0 6px 4px;}
+    .msg-bubble{padding:11px 14px;border-radius:18px;font-size:15px;line-height:1.45;color:var(--text);border:1px solid rgba(255,255,255,var(--glass-border));}
+    .msg-item.from-doctor .msg-bubble{background:var(--glass);border-bottom-left-radius:6px;}
+    .msg-item.from-patient .msg-bubble{background:rgba(74,127,212,.22);border-bottom-right-radius:6px;}
   </style>
 </head>
 <body>
@@ -1964,7 +1973,11 @@
                   <div id="planAppts" class="appt-list"></div>
                   <div id="planTimeline" class="appt-timeline" aria-hidden="true"></div>
                 </div>
-                <div class="tab-panel" data-panel="messaggi" hidden><p class="section-kicker" data-i18n="tabMessages"></p></div>
+                <div class="tab-panel" data-panel="messaggi" hidden>
+                  <p class="section-kicker" data-i18n="tabMessages"></p>
+                  <p class="plan-subhead" data-i18n="messagesSubhead"></p>
+                  <div id="msgThread" class="msg-thread"></div>
+                </div>
                 <div class="tab-panel" data-panel="profilo" hidden><p class="section-kicker" data-i18n="tabProfile"></p></div>
               </div>
               <nav class="tab-bar" aria-label="Tab">
@@ -3232,6 +3245,7 @@
       tabHome: "Home",
       tabPlan: "Piano",
       tabMessages: "Messaggi",
+      messagesSubhead: "Canale con il tuo team di cura",
       tabProfile: "Profilo",
       planMedsTitle: "Farmaci del giorno",
       planApptTitle: "Calendario Appuntamenti",
@@ -3459,6 +3473,7 @@
       tabHome: "Home",
       tabPlan: "Plan",
       tabMessages: "Messages",
+      messagesSubhead: "Channel with your care team",
       tabProfile: "Profile",
       planMedsTitle: "Daily medication",
       planApptTitle: "Appointments Calendar",
@@ -4013,6 +4028,25 @@
         tlHost.scrollLeft = Math.max(0, Math.min(todayX - tlCW / 2, tlSW - tlCW));
       }
     }
+    renderMessages();
+  }
+  function renderMessages(){
+    var host = document.getElementById("msgThread");
+    if(!host) return;
+    host.innerHTML = "";
+    PATIENT_DATA.messages.forEach(function(m){
+      var item = document.createElement("div");
+      item.className = "msg-item " + (m.fromPatient ? "from-patient" : "from-doctor");
+      var meta = document.createElement("div");
+      meta.className = "msg-meta";
+      meta.textContent = m.author + " · " + m.date;
+      var bubble = document.createElement("div");
+      bubble.className = "msg-bubble";
+      bubble.textContent = m.text;
+      item.appendChild(meta);
+      item.appendChild(bubble);
+      host.appendChild(item);
+    });
   }
   // esposta globale: switchTab vive in un'altra IIFE e la richiama via window
   window.renderPatientData = renderPatientData;
