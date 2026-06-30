@@ -4297,7 +4297,10 @@
     if(!c) return;
     c.messages.push({ date: msgNow(), author: "Elena Colombo", fromPatient: true, text: text });
     renderThread(openConvoId);
-    if(openConvoId === "mybetween") botRespond(text);
+    if(openConvoId === "mybetween"){
+      if(operatorJoined) operatorRespond(text);
+      else botRespond(text);
+    }
   }
 
   function sendMessage(){
@@ -4387,12 +4390,34 @@
     if(openConvoId === "mybetween") renderThread("mybetween"); else { c.unread = true; }
     renderMessages();
     setTimeout(function(){
-      botTyping();
-      var writeMs = 3000 + Math.floor(Math.random() * 4000); // 3-7s di scrittura umana
-      setTimeout(function(){
-        msgPushIncoming("mybetween", "Salve signora Colombo, sono Giovanni, un operatore della sua ULSS. Ho visto che ha bisogno di assistenza, mi dica pure come posso aiutarla.", "Operatore ULSS · Giovanni");
-      }, writeMs);
+      operatorSay("Salve signora Colombo, sono Giovanni, un operatore della sua ULSS. Ho visto che ha bisogno di assistenza, mi dica pure come posso aiutarla.");
     }, 6500);
+  }
+
+  // Risposta di un umano finto (operatore): sempre con tempo di scrittura 3-7s.
+  function operatorSay(text){
+    botTyping();
+    var writeMs = 3000 + Math.floor(Math.random() * 4000); // 3-7s di scrittura umana
+    setTimeout(function(){
+      msgPushIncoming("mybetween", text, "Operatore ULSS · Giovanni");
+    }, writeMs);
+  }
+
+  function operatorRespond(userText){
+    var t = botNorm(userText);
+    var has = function(arr){ return arr.some(function(k){ return t.indexOf(k) !== -1; }); };
+    var reply;
+    if(has(["farmaco","farmaci","medicin","terapia","pastiglia","pillola","compressa","cura","ordine","prendere"]))
+      reply = "Certo, l'aiuto io. " + botMedsAnswer() + " Se vuole le rileggo gli orari con calma, uno alla volta.";
+    else if(has(["appuntament","visita","visite","controllo","calendario","prossim","neurolog"]))
+      reply = botApptAnswer();
+    else if(has(["documento","documenti","referto","referti","fascicolo","fse","km zero","cartella","esame","esami"]))
+      reply = "Per i suoi documenti può usare il Fascicolo Sanitario Km Zero dal link nei Numeri utili qui sopra. Se preferisce le preparo io il riepilogo, mi dica pure cosa le serve.";
+    else if(has(["grazie","perfetto","va bene"]))
+      reply = "Si figuri, sono qui per questo. Se le serve altro mi scriva pure.";
+    else
+      reply = "Capisco, mi dica pure con calma di cosa ha bisogno e l'aiuto subito.";
+    operatorSay(reply);
   }
 
   function botRespond(userText){
