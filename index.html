@@ -2041,7 +2041,7 @@
                 <div class="glass notif-row"><span class="ni">💬</span><div class="txt"><strong data-i18n="notifMsgTitle"></strong><small data-i18n="notifMsgSub"></small></div><span class="notif-ring"></span></div>
                 <div class="glass notif-row"><span class="ni">🏃</span><div class="txt"><strong data-i18n="notifRiabTitle"></strong><small data-i18n="notifRiabSub"></small></div><span class="notif-ring"></span></div>
                 <div class="glass notif-row"><span class="ni">🩺</span><div class="txt"><strong data-i18n="notifParamTitle"></strong><small data-i18n="notifParamSub"></small></div><span class="notif-ring"></span></div>
-                <div style="margin-top:22px;"><button type="button" class="btn-fill" data-i18n="enableNotifArrow"></button></div>
+                <div style="margin-top:22px;"><button type="button" id="enableNotifBtn" class="btn-fill" data-i18n="enableNotifArrow" disabled></button></div>
                 <div style="text-align:center;margin-top:12px;"><button type="button" class="link-muted" data-i18n="skipForNow"></button></div>
               </div>
               <div class="home-indicator"></div>
@@ -3322,14 +3322,21 @@
 (function(){
   var host=document.querySelector('[data-screen="a5"]');
   if(!host)return;
+  var enableBtn=host.querySelector('#enableNotifBtn');
+  function syncEnable(){
+    if(!enableBtn)return;
+    enableBtn.disabled = host.querySelectorAll('.notif-ring.on').length === 0;
+  }
   host.querySelectorAll('.notif-row').forEach(function(row){
     var ring=row.querySelector('.notif-ring');
     if(!ring)return;
     row.addEventListener('click',function(){
       var on=ring.classList.toggle('on');
       ring.textContent=on?'✓':'';
+      syncEnable();
     });
   });
+  syncEnable();
 })();
 
 /* ===== A1 — pannello SPID a tendina (accordion) + scelta Namirial ID ===== */
