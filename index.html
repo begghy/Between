@@ -5245,6 +5245,23 @@
       if (!a7 || !a7.parentNode) return;
       var row = a7.parentNode;
 
+      // switchTab non e' esposto in ?section: facciamo il toggle dei pannelli qui.
+      function showPanel(name) {
+        a7.querySelectorAll(".tab-panel").forEach(function (p) {
+          p.hidden = p.getAttribute("data-panel") !== name;
+        });
+        a7.querySelectorAll(".tab-bar .tab").forEach(function (t) {
+          t.classList.toggle("on", t.getAttribute("data-tab") === name);
+        });
+      }
+      // Riporta Messaggi sull'inbox e Profilo sulla schermata madre.
+      function resetInner() {
+        var inbox = a7.querySelector("#msgInbox"); if (inbox) inbox.hidden = false;
+        var chat  = a7.querySelector("#msgChat");  if (chat)  chat.hidden = true;
+        var pMain = a7.querySelector("#profileMain"); if (pMain) pMain.hidden = false;
+        var pDoc  = a7.querySelector("#profileDoc");  if (pDoc)  pDoc.hidden = true;
+      }
+
       function snap(caption) {
         var clone = a7.cloneNode(true);
         var cap = clone.querySelector(".frame-caption");
@@ -5253,37 +5270,37 @@
       }
 
       // Piano
-      if (window.switchTab) window.switchTab("piano");
+      showPanel("piano"); resetInner();
       snap("A7 — Piano");
 
       // Messaggi (inbox)
-      if (window.switchTab) window.switchTab("messaggi");
-      if (window.closeConversation) window.closeConversation();
+      showPanel("messaggi"); resetInner();
       snap("A7 — Messaggi");
 
-      // Chat: My-Between, Marco (caregiver), Dr. Bianchi (medico)
+      // Chat: My-Between, Marco (caregiver), Dr. Bianchi (medico).
+      // openConversation riempie il thread e mostra la chat dentro il pannello messaggi.
+      showPanel("messaggi");
       if (window.openConversation) {
         window.openConversation("mybetween"); snap("A7 — Chat · My-Between");
         window.openConversation("caregiver"); snap("A7 — Chat · Marco");
         window.openConversation("doctor");    snap("A7 — Chat · Dr. Bianchi");
       }
-      if (window.closeConversation) window.closeConversation();
 
       // Profilo (principale)
-      if (window.switchTab) window.switchTab("profilo");
+      showPanel("profilo"); resetInner();
       snap("A7 — Profilo");
 
-      // Documenti del Profilo
+      // Documenti del Profilo: openProfileDoc riempie e mostra il documento.
       if (window.openProfileDoc) {
         window.openProfileDoc("faq");     snap("A7 — Profilo · FAQ");
         window.openProfileDoc("help");    snap("A7 — Profilo · Aiuto");
         window.openProfileDoc("privacy"); snap("A7 — Profilo · Privacy");
         window.openProfileDoc("terms");   snap("A7 — Profilo · Termini");
       }
-      if (window.closeProfileDoc) window.closeProfileDoc();
 
       // Ripristina la Home originale
-      if (window.switchTab) window.switchTab("home");
+      resetInner();
+      showPanel("home");
     }
 
     // Dopo l'init sincrono (dati gia' renderizzati sopra).
