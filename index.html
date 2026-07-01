@@ -4679,13 +4679,25 @@
   function msgOnEnterMessaggi(){
     if(msgIncomingDone) return;
     msgIncomingDone = true;
-    setTimeout(function(){
+    // Se stiamo entrando direttamente dentro una chat (ricarica o link con l'URL
+    // su a7/messaggi/<id>), consegniamo subito i messaggi senza il ritardo "demo",
+    // così al refresh restano visibili invece di sparire e ricomparire.
+    var raw = (window.location.hash || "").replace(/^#/, "").toLowerCase();
+    var insideChat = /^a7\/messaggi\/.+/.test(raw);
+    var wave1 = function(){
       msgPushIncoming("caregiver", "Ciao mamma, come stai oggi? Volevo sapere se va tutto bene.");
-    }, 3000);
-    setTimeout(function(){
+    };
+    var wave2 = function(){
       msgPushIncoming("caregiver", "Ricordati la visita neurologica trimestrale del 9 luglio alle 10:30. Ti accompagno io, passo a prenderti.");
       msgPushIncoming("doctor", "Promemoria dal suo neurologo: visita neurologica trimestrale il 9 luglio alle 10:30. A presto.");
-    }, 4500);
+    };
+    if(insideChat){
+      wave1();
+      wave2();
+    } else {
+      setTimeout(wave1, 3000);
+      setTimeout(wave2, 4500);
+    }
   }
   window.msgOnEnterMessaggi = msgOnEnterMessaggi;
 
