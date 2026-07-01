@@ -1650,6 +1650,10 @@
     /* lo scroll-area parte dal bordo alto rispettando solo la safe-area del notch */
     body.is-mobile.mode-app .screen-package.active .scroll-area {
       top: env(safe-area-inset-top) !important;
+      padding-top: 18px !important;
+    }
+    body.is-mobile.mode-app .screen-package[data-screen="a7"].active .scroll-area {
+      padding-top: 8px !important;
     }
     /* Mobile: toggle lingua in basso a destra e più piccolo (non copre il testo) */
     body.is-mobile .lang-toggle{
