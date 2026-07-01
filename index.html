@@ -2671,13 +2671,18 @@
   function rawHash() {
     return (window.location.hash || "").replace(/^#/, "").toLowerCase();
   }
+  // hashParts: [schermata, tab, sottovista]. Esempio: "a7/profilo/faq".
+  function hashParts() {
+    return rawHash().split("/");
+  }
   function currentScreen() {
-    var h = rawHash();
-    return SCREENS.indexOf(h) >= 0 ? h : DEFAULT_SCREEN;
+    var s = hashParts()[0] || "";
+    return SCREENS.indexOf(s) >= 0 ? s : DEFAULT_SCREEN;
   }
 
   // ---- Coach mark / product tour (A7) — stato ----
   var coachStep = 0;                                  // indice del passo corrente
+  var lastScreen = null;                              // schermata del render precedente (per non riavviare il tour ai cambi tab)
   var coachForce = params.get("tour") === "1";        // ?tour=1 → parte sempre entrando in a7
   // se la pagina viene caricata/ricaricata già su #a7, NON far partire il tour
   // a quel primo load: lo si fa solo sulle navigazioni successive verso a7.
@@ -2685,6 +2690,7 @@
 
   function render() {
     var screen = currentScreen();
+    var screenChanged = (screen !== lastScreen);
     // Protezione: se il markup della schermata non esiste ancora (una schermata
     // di flusso non costruita), evita lo schermo nero tornando al DEFAULT_SCREEN.
     if (screen !== DEFAULT_SCREEN && !document.querySelector('[data-screen="' + screen + '"]')) {
@@ -2759,21 +2765,25 @@
         if (currentScreen() === "a1-cie-ok") nav("a2");
       }, 2500);
     }
-    // A7 (Home): avvio del coach mark / product tour.
-    // - ?tour=1: parte sempre quando si entra in a7 (override demo);
-    // - altrimenti parte solo arrivando per navigazione, NON al load diretto su a7.
+    // A7 (Home): stato interno (tab + sottovista) guidato dall'hash.
+    if (screen === "a7") applyA7FromHash();
+    // A7 (Home): avvio del coach mark / product tour SOLO quando si ENTRA in a7
+    // (screenChanged), non ai cambi di tab interni (che ora passano dal router).
     if (screen === "a7") {
-      if (coachForce) {
-        startCoachTour();
-      } else if (coachSuppressInitial) {
-        coachSuppressInitial = false; // consuma il "salta" una sola volta
-        hideCoach();
-      } else {
-        startCoachTour();
+      if (screenChanged) {
+        if (coachForce) {
+          startCoachTour();
+        } else if (coachSuppressInitial) {
+          coachSuppressInitial = false; // consuma il "salta" una sola volta
+          hideCoach();
+        } else {
+          startCoachTour();
+        }
       }
     } else {
       hideCoach();
     }
+    lastScreen = screen;
   }
 
   // ---- Tab interne A7 (Home / Piano / Messaggi / Profilo) ----
@@ -2795,11 +2805,50 @@
     if (panelName === "messaggi" && window.msgOnEnterMessaggi) window.msgOnEnterMessaggi();
   }
   window.switchTab = switchTab;
-  // wiring tab a7
+
+  // Applica tab + sottovista di A7 leggendo l'hash. Le funzioni delle sottoviste
+  // vivono nell'altra IIFE e arrivano via window (guardie per il primo render).
+  function applyA7FromHash() {
+    var parts = hashParts();               // [a7, tab, sub]
+    var tab = parts[1] || "home";
+    if (["home","piano","messaggi","profilo"].indexOf(tab) < 0) tab = "home";
+    var sub = parts[2] || "";
+    switchTab(tab);
+    if (tab === "messaggi") {
+      if (sub && window.openConversation) window.openConversation(sub);
+      else if (window.closeConversation) window.closeConversation();
+    } else if (tab === "profilo") {
+      if (sub && window.openProfileDoc) window.openProfileDoc(sub);
+      else if (window.closeProfileDoc) window.closeProfileDoc();
+    }
+  }
+
+  // Naviga a una tab scrivendo l'hash (push: il tasto indietro del mouse torna
+  // alla tab/sottovista precedente). "home" resta "#a7".
+  function goTab(panel) {
+    var target = (panel === "home") ? "a7" : ("a7/" + panel);
+    if (rawHash() === target) return;
+    window.location.hash = target;
+  }
+  window.goTab = goTab;
+
+  // Torna indietro sostituendo l'hash (niente entry spuria in avanti): usato dai
+  // tasti indietro interni (thread messaggi, documenti profilo).
+  function navReplace(h) {
+    if (window.history && window.history.replaceState) {
+      window.history.replaceState(null, "", "#" + h);
+      render();
+    } else {
+      window.location.hash = h;
+    }
+  }
+  window.navReplace = navReplace;
+
+  // wiring tab a7 → passa dal router (hash) così indietro/ricarica funzionano
   document.querySelectorAll('[data-screen="a7"] .tab-bar .tab').forEach(function(t){
     t.addEventListener('click', function(){
       var panel = t.getAttribute('data-tab');
-      if (panel) switchTab(panel);
+      if (panel) goTab(panel);
     });
   });
 
@@ -2808,9 +2857,11 @@
   }
 
   window.addEventListener("hashchange", render);
+  window.applyRoute = render; // riapplica la rotta dopo l'init dell'IIFE paziente
 
-  // normalizza un hash assente/non valido senza creare una entry spuria
-  if (currentScreen() !== rawHash()) {
+  // normalizza solo se la SCHERMATA (prima parte dell'hash) è assente o non valida,
+  // preservando le sottovie valide come "a7/profilo/faq".
+  if (SCREENS.indexOf(hashParts()[0] || "") < 0) {
     if (window.history.replaceState) {
       window.history.replaceState(null, "", "#" + DEFAULT_SCREEN);
     } else {
@@ -3210,8 +3261,8 @@
       var currentPanel=null;
       if(a7) a7.querySelectorAll('.tab-panel').forEach(function(p){ if(!p.hidden) currentPanel=p.getAttribute('data-panel'); });
       // se sei già nella sezione, non navigare: chiudi e basta
-      if(target && target!==currentPanel && typeof window.switchTab==='function'){
-        window.switchTab(target);
+      if(target && target!==currentPanel && typeof window.goTab==='function'){
+        window.goTab(target);
       }
       closeMenu();
     });
@@ -4676,13 +4727,13 @@
       card.appendChild(av);
       card.appendChild(body);
       if(c.unread) card.classList.add("is-unread");
-      card.addEventListener("click", function(){ openConversation(c.id); });
+      card.addEventListener("click", function(){ window.location.hash = "a7/messaggi/" + c.id; });
       inbox.appendChild(card);
     });
 
     var backBtn = document.getElementById("msgBackBtn");
     if(backBtn){
-      if(!backBtn.dataset.ready){ backBtn.dataset.ready = "1"; backBtn.addEventListener("click", closeConversation); }
+      if(!backBtn.dataset.ready){ backBtn.dataset.ready = "1"; backBtn.addEventListener("click", function(){ if(window.navReplace) window.navReplace("a7/messaggi"); else closeConversation(); }); }
       backBtn.setAttribute("aria-label", STRINGS[L].msgBack);
     }
 
@@ -4793,16 +4844,16 @@
     document.querySelectorAll('[data-panel="profilo"] .profile-link').forEach(function(lk){
       lk.addEventListener("click", function(){
         var a = lk.getAttribute("data-action");
-        if(a === "operator"){ if(window.switchTab) window.switchTab("messaggi"); return; }
-        if(PROFILE_DOCS[a]) openProfileDoc(a);
+        if(a === "operator"){ if(window.goTab) window.goTab("messaggi"); else if(window.switchTab) window.switchTab("messaggi"); return; }
+        if(PROFILE_DOCS[a]) window.location.hash = "a7/profilo/" + a;
       });
     });
     var docBack = document.getElementById("profileDocBack");
-    if(docBack) docBack.addEventListener("click", closeProfileDoc);
+    if(docBack) docBack.addEventListener("click", function(){ if(window.navReplace) window.navReplace("a7/profilo"); else closeProfileDoc(); });
     var lo = document.getElementById("profileLogout");
     if(lo) lo.addEventListener("click", function(){ location.hash = "a1"; });
     var headerAv = document.querySelector('[data-screen="a7"] .header-row .avatar-round');
-    if(headerAv){ headerAv.style.cursor = "pointer"; headerAv.addEventListener("click", function(){ if(window.switchTab) window.switchTab("profilo"); }); }
+    if(headerAv){ headerAv.style.cursor = "pointer"; headerAv.addEventListener("click", function(){ if(window.goTab) window.goTab("profilo"); else if(window.switchTab) window.switchTab("profilo"); }); }
   }
 
   var PROFILE_DOCS = {
@@ -4889,6 +4940,11 @@
 
   // esposta globale: switchTab vive in un'altra IIFE e la richiama via window
   window.renderPatientData = renderPatientData;
+  // esposte per il router (guidano tab/sottoviste dall'hash)
+  window.openConversation = openConversation;
+  window.closeConversation = closeConversation;
+  window.openProfileDoc = openProfileDoc;
+  window.closeProfileDoc = closeProfileDoc;
 
   // Drag-to-scroll orizzontale sulla timeline (stile Notion). I listener si
   // agganciano UNA SOLA VOLTA (guardia dataset.dragReady): la rotella continua
@@ -4922,6 +4978,7 @@
   applyLanguage("it");
   renderPatientData();
   setupTimelineDrag();
+  if (window.applyRoute) window.applyRoute(); // riapplica tab/sottovista dall'hash ora che le funzioni esistono
 
   // Gate consenso all'avvio: una volta per sessione del browser. I tre bottoni
   // chiudono il gate e fanno entrare nell'app. Sempre rileggibile da Profilo.
