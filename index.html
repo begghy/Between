@@ -729,6 +729,23 @@
     .consent-btn{width:100%;padding:14px;border-radius:16px;font-size:15px;font-weight:600;cursor:pointer;border:none;}
     .consent-primary{background:var(--accent);color:#fff;}
     .consent-ghost{background:transparent;color:var(--accent);border:1px solid var(--accent);}
+    /* Tema chiaro: override dei token e delle superfici principali (buio = default) */
+    body.theme-light{
+      --bg-screen:#eaf0f8;
+      --bg-page:#e4ebf5;
+      --text:#0e1a2c;
+      --muted:rgba(14,26,44,0.60);
+      --muted2:rgba(14,26,44,0.42);
+      --glass:rgba(255,255,255,0.75);
+      --glass-border:rgba(14,26,44,0.10);
+      --shadow:0 8px 30px rgba(20,44,88,0.12);
+    }
+    body.theme-light .screen-bg{
+      background:radial-gradient(ellipse 80% 55% at 50% -10%, rgba(74,127,212,0.16) 0%, transparent 70%), #eaf0f8;
+    }
+    body.theme-light .screen-bg::after{ opacity:0.025; }
+    body.theme-light .status-bar{ color:#0e1a2c; }
+    body.theme-light .glass-muted{ background:rgba(14,26,44,0.05); }
     .med-name { font-size: 16px; font-weight: 500; }
     .med-undo { font-size: 14px; font-weight: 600; color: var(--accent); cursor: pointer; margin-left: auto; padding-left: 12px; white-space: nowrap; text-decoration: none; display: inline-block; }
     .med-row.done .med-undo { opacity: 1 !important; color: var(--accent) !important; font-weight: 600; }
@@ -2176,9 +2193,7 @@
                   <p class="plan-subhead" data-i18n="profileSettingsTitle"></p>
                   <div class="glass profile-card">
                     <div class="profile-row"><span class="profile-row-label" data-i18n="profileNotif"></span><button type="button" class="profile-switch on" aria-pressed="true"></button></div>
-                    <div class="profile-row"><span class="profile-row-label" data-i18n="profileMedReminders"></span><button type="button" class="profile-switch on" aria-pressed="true"></button></div>
-                    <div class="profile-row"><span class="profile-row-label" data-i18n="profileShareData"></span><button type="button" class="profile-switch on" aria-pressed="true"></button></div>
-                    <div class="profile-row"><span class="profile-row-label" data-i18n="profileDarkMode"></span><button type="button" class="profile-switch on" aria-pressed="true"></button></div>
+                    <div class="profile-row"><span class="profile-row-label" data-i18n="profileDarkMode"></span><button type="button" id="switchDarkMode" class="profile-switch on" aria-pressed="true"></button></div>
                   </div>
                   <p class="plan-subhead" data-i18n="profileSupportTitle"></p>
                   <div class="glass profile-card">
@@ -4866,6 +4881,17 @@
     if(lo) lo.addEventListener("click", function(){ location.hash = "a1"; });
     var headerAv = document.querySelector('[data-screen="a7"] .header-row .avatar-round');
     if(headerAv){ headerAv.style.cursor = "pointer"; headerAv.addEventListener("click", function(){ if(window.goTab) window.goTab("profilo"); else if(window.switchTab) window.switchTab("profilo"); }); }
+    var dm = document.getElementById("switchDarkMode");
+    if(dm){
+      var lightNow = document.body.classList.contains("theme-light");
+      dm.classList.toggle("on", !lightNow);
+      dm.setAttribute("aria-pressed", (!lightNow) ? "true" : "false");
+      dm.addEventListener("click", function(){
+        var darkOn = dm.classList.contains("on"); // il gestore generico ha già invertito .on
+        document.body.classList.toggle("theme-light", !darkOn);
+        try { localStorage.setItem("betweenTheme", darkOn ? "dark" : "light"); } catch(e){}
+      });
+    }
   }
 
   var PROFILE_DOCS = {
@@ -4987,6 +5013,8 @@
     tl.addEventListener("dragstart", function (e) { e.preventDefault(); });
   }
 
+  // Tema: applica la preferenza salvata prima di renderizzare (default = scuro).
+  try { if(localStorage.getItem("betweenTheme") === "light") document.body.classList.add("theme-light"); } catch(e){}
   applyLanguage("it");
   renderPatientData();
   setupTimelineDrag();
