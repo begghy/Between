@@ -1087,6 +1087,10 @@
        In import mode (?section=…) questo blocco NON si applica →
        layout identico allo storyboard (riga di frame affiancati).
        ============================================================ */
+    /* Export html.to.design: nascondi gli overlay che sporcano i frame */
+    body.mode-import .consent-gate,
+    body.mode-import .lang-toggle,
+    body.mode-import .hamburger-btn { display: none !important; }
     body.mode-app .page-wrap { padding: 0; max-width: none; }
     body.mode-app .section-label,
     body.mode-app .frame-caption { display: none; }
@@ -2724,6 +2728,7 @@
 
   if (section) {
     // ---- IMPORT MODE: identico allo storyboard (export) ----
+    document.body.classList.add("mode-import");
     var sectionMap = { a: "lab-a", b: "lab-b", c: "lab-c" };
     document.querySelectorAll(".flow-section").forEach(function (el) {
       el.style.display = "none";
@@ -2738,6 +2743,16 @@
 
   // ---- APP MODE: router a schermata singola via hash ----
   document.body.classList.add("mode-app");
+
+  // ?export=1: app "pulita" per catturare i singoli stati in html.to.design.
+  // Overlay nascosti (mode-import), coach spento, consenso considerato gia' dato,
+  // rendering telefono forzato (is-mobile) cosi' ogni stato interno esce come
+  // frame 390px uniforme allo storyboard. Importa questi URL a 390px di larghezza.
+  if (params.get("export") === "1") {
+    document.body.classList.add("mode-import");
+    document.body.classList.add("is-mobile");
+    try { sessionStorage.setItem("betweenConsent", "1"); } catch(e){}
+  }
 
   // Rilevamento touch/mobile: applica il fullscreen via classe is-mobile invece
   // di affidarsi alle sole media query (inaffidabili nelle webview WhatsApp/IG).
@@ -2862,7 +2877,9 @@
     // A7 (Home): avvio del coach mark / product tour SOLO quando si ENTRA in a7
     // (screenChanged), non ai cambi di tab interni (che ora passano dal router).
     if (screen === "a7") {
-      if (screenChanged) {
+      if (document.body.classList.contains("mode-import")) {
+        hideCoach();
+      } else if (screenChanged) {
         if (coachForce) {
           startCoachTour();
         } else if (coachSuppressInitial) {
