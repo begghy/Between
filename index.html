@@ -1651,6 +1651,28 @@
     body.is-mobile.mode-app .screen-package.active .scroll-area {
       top: env(safe-area-inset-top) !important;
     }
+    /* Mobile: toggle lingua in basso a destra e più piccolo (non copre il testo) */
+    body.is-mobile .lang-toggle{
+      top:auto;
+      bottom:calc(env(safe-area-inset-bottom) + 20px);
+      right:16px;
+      padding:5px 6px;
+      gap:2px;
+    }
+    body.is-mobile .lang-toggle button{ font-size:12px; padding:4px 9px; }
+    /* Mobile: durante il gate consenso nascondi il toggle (eviterebbe i bottoni) */
+    body.is-mobile .consent-gate:not(.is-hidden) ~ .lang-toggle{ display:none; }
+    /* Mobile a7: la tab Profilo sparisce, il toggle prende il suo posto nella tab bar */
+    body.is-mobile .screen-package[data-screen="a7"] .tab-bar .tab[data-tab="profilo"]{ display:none; }
+    body.is-mobile .lang-toggle.in-tabbar{
+      position:static; top:auto; right:auto; bottom:auto;
+      flex:1;
+      background:transparent; border:none; box-shadow:none;
+      -webkit-backdrop-filter:none; backdrop-filter:none;
+      padding:0 0 6px; gap:2px; border-radius:0;
+      align-self:flex-end; justify-content:center;
+    }
+    body.is-mobile .lang-toggle.in-tabbar button{ font-size:12px; padding:4px 9px; }
     /* ===== Messaggi — thread chat read-only ===== */
     .msg-thread{display:flex;flex-direction:column;gap:14px;padding-top:4px;}
     .msg-item{display:flex;flex-direction:column;max-width:min(82%,520px);}
@@ -2849,6 +2871,7 @@
     } else {
       hideCoach();
     }
+    placeLangToggle(screen);
     lastScreen = screen;
   }
 
@@ -2909,6 +2932,22 @@
     }
   }
   window.navReplace = navReplace;
+
+  // Mobile: su a7 il toggle lingua entra nella tab bar (al posto del Profilo);
+  // sulle altre schermate torna in basso a destra. Su desktop non viene toccato.
+  function placeLangToggle(screen){
+    if(!document.body.classList.contains("is-mobile")) return;
+    var itBtn = document.getElementById("btn-it");
+    var lt = itBtn && itBtn.closest(".lang-toggle");
+    if(!lt) return;
+    if(screen === "a7"){
+      var bar = document.querySelector('[data-screen="a7"] .tab-bar');
+      if(bar && lt.parentNode !== bar){ lt.classList.add("in-tabbar"); bar.appendChild(lt); }
+    } else if(lt.classList.contains("in-tabbar")){
+      lt.classList.remove("in-tabbar");
+      document.body.appendChild(lt);
+    }
+  }
 
   // wiring tab a7 → passa dal router (hash) così indietro/ricarica funzionano
   document.querySelectorAll('[data-screen="a7"] .tab-bar .tab').forEach(function(t){
