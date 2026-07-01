@@ -729,6 +729,16 @@
     .consent-btn{width:100%;padding:14px;border-radius:16px;font-size:15px;font-weight:600;cursor:pointer;border:none;}
     .consent-primary{background:var(--accent);color:#fff;}
     .consent-ghost{background:transparent;color:var(--accent);border:1px solid var(--accent);}
+    #consentMain, #consentCustomView{display:flex;flex-direction:column;height:100%;}
+    #consentMain[hidden], #consentCustomView[hidden]{display:none;}
+    .consent-h{font-size:15px;font-weight:700;color:var(--text);margin:20px 0 6px;}
+    .consent-opt{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;padding:16px 0;border-top:1px solid var(--glass-border);}
+    .consent-opt:first-of-type{border-top:none;}
+    .consent-opt-txt{display:flex;flex-direction:column;gap:3px;min-width:0;}
+    .consent-opt-txt strong{font-size:15px;font-weight:600;color:var(--text);}
+    .consent-opt-txt span{font-size:13px;line-height:1.45;color:var(--muted);}
+    .consent-opt .profile-switch{margin-top:2px;}
+    .consent-opt .profile-switch:disabled{opacity:.6;cursor:not-allowed;}
     /* Tema chiaro: override dei token e delle superfici principali (buio = default) */
     body.theme-light{
       --bg-screen:#eaf0f8;
@@ -1724,16 +1734,57 @@
 
   <div id="consentGate" class="consent-gate">
     <div class="consent-sheet">
-      <div class="consent-scroll">
-        <h2 class="consent-title" data-i18n="consentTitle"></h2>
-        <p class="consent-p" data-i18n="consentP1"></p>
-        <p class="consent-p" data-i18n="consentP2"></p>
-        <p class="consent-p" data-i18n="consentP3"></p>
+      <div id="consentMain">
+        <div class="consent-scroll">
+          <h2 class="consent-title" data-i18n="consentTitle"></h2>
+          <p class="consent-p" data-i18n="consentIntro"></p>
+          <h3 class="consent-h" data-i18n="consentH1"></h3>
+          <p class="consent-p" data-i18n="consentB1"></p>
+          <h3 class="consent-h" data-i18n="consentH2"></h3>
+          <p class="consent-p" data-i18n="consentB2"></p>
+          <h3 class="consent-h" data-i18n="consentH3"></h3>
+          <p class="consent-p" data-i18n="consentB3"></p>
+          <h3 class="consent-h" data-i18n="consentH4"></h3>
+          <p class="consent-p" data-i18n="consentB4"></p>
+          <h3 class="consent-h" data-i18n="consentH5"></h3>
+          <p class="consent-p" data-i18n="consentB5"></p>
+          <h3 class="consent-h" data-i18n="consentH6"></h3>
+          <p class="consent-p" data-i18n="consentB6"></p>
+        </div>
+        <div class="consent-actions">
+          <button type="button" class="consent-btn consent-primary" id="consentAccept" data-i18n="consentAccept"></button>
+          <button type="button" class="consent-btn consent-ghost" id="consentCustomBtn" data-i18n="consentCustom"></button>
+        </div>
       </div>
-      <div class="consent-actions">
-        <button type="button" class="consent-btn consent-primary" id="consentAccept" data-i18n="consentAccept"></button>
-        <button type="button" class="consent-btn consent-primary" id="consentContinue" data-i18n="consentContinue"></button>
-        <button type="button" class="consent-btn consent-ghost" id="consentCustom" data-i18n="consentCustom"></button>
+      <div id="consentCustomView" hidden>
+        <div class="consent-scroll">
+          <button type="button" id="consentCustomBack" class="msg-back" aria-label="Indietro" style="margin-bottom:6px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></button>
+          <h2 class="consent-title" data-i18n="consentCustomTitle"></h2>
+          <p class="consent-p" data-i18n="consentCustomIntro"></p>
+          <div class="consent-opt">
+            <div class="consent-opt-txt"><strong data-i18n="consentOptNeededTitle"></strong><span data-i18n="consentOptNeededDesc"></span></div>
+            <button type="button" class="profile-switch on" aria-pressed="true" disabled></button>
+          </div>
+          <div class="consent-opt">
+            <div class="consent-opt-txt"><strong data-i18n="consentOptNotifTitle"></strong><span data-i18n="consentOptNotifDesc"></span></div>
+            <button type="button" class="profile-switch on" aria-pressed="true"></button>
+          </div>
+          <div class="consent-opt">
+            <div class="consent-opt-txt"><strong data-i18n="consentOptShareTitle"></strong><span data-i18n="consentOptShareDesc"></span></div>
+            <button type="button" class="profile-switch on" aria-pressed="true"></button>
+          </div>
+          <div class="consent-opt">
+            <div class="consent-opt-txt"><strong data-i18n="consentOptStatsTitle"></strong><span data-i18n="consentOptStatsDesc"></span></div>
+            <button type="button" class="profile-switch" aria-pressed="false"></button>
+          </div>
+          <div class="consent-opt">
+            <div class="consent-opt-txt"><strong data-i18n="consentOptResearchTitle"></strong><span data-i18n="consentOptResearchDesc"></span></div>
+            <button type="button" class="profile-switch" aria-pressed="false"></button>
+          </div>
+        </div>
+        <div class="consent-actions">
+          <button type="button" class="consent-btn consent-primary" id="consentConfirm" data-i18n="consentConfirm"></button>
+        </div>
       </div>
     </div>
   </div>
@@ -3586,9 +3637,34 @@
       consentP1: "Between, in qualità di gestore della piattaforma, tratta i tuoi dati per fornirti i servizi di coordinamento delle cure, in collaborazione con la tua Azienda ULSS e con il Fascicolo Sanitario Elettronico della Regione Veneto.",
       consentP2: "Alcuni trattamenti sono tecnicamente necessari per far funzionare il servizio, altri vengono effettuati solo con il tuo consenso, per esempio per migliorare l'esperienza d'uso o per produrre statistiche aggregate e anonime. Alla voce Personalizza la scelta puoi gestire singolarmente ogni finalità.",
       consentP3: "Scegliendo Continua senza accettare puoi proseguire usando solo i trattamenti necessari. Puoi modificare le tue preferenze in qualsiasi momento dalla sezione Profilo.",
-      consentAccept: "Accetta",
-      consentContinue: "Continua senza accettare",
+      consentAccept: "Accetta e continua",
       consentCustom: "Personalizza la scelta",
+      consentIntro: "Prima di iniziare a usare Between ti chiediamo di leggere come trattiamo i tuoi dati personali e sanitari. Ci teniamo alla tua privacy e vogliamo che tu possa scegliere in modo informato.",
+      consentH1: "Titolare del trattamento",
+      consentB1: "Between è messo a disposizione nell'ambito dei servizi di coordinamento delle cure della tua Azienda ULSS 6 Euganea, che agisce come titolare del trattamento insieme alla Regione Veneto per la parte relativa al Fascicolo Sanitario Elettronico.",
+      consentH2: "Finalità e basi giuridiche",
+      consentB2: "Trattiamo i tuoi dati per permetterti di seguire il piano di cura dopo la dimissione, gestire farmaci e appuntamenti e comunicare con il tuo team di cura. La base giuridica è l'erogazione di servizi sanitari e di assistenza, oltre al tuo consenso per le finalità facoltative descritte più sotto.",
+      consentH3: "Categorie di dati trattati",
+      consentB3: "Trattiamo dati anagrafici e di contatto, dati relativi al tuo percorso clinico, alla terapia e agli appuntamenti, e i messaggi scambiati con i professionisti. Non ti vengono chiesti dati non necessari alle finalità del servizio.",
+      consentH4: "Fascicolo Sanitario Elettronico",
+      consentB4: "Alcune informazioni provengono dal tuo Fascicolo Sanitario Elettronico nell'ecosistema Sanità Km Zero della Regione Veneto. La consultazione dei documenti da parte dei professionisti avviene solo nei limiti dei consensi che hai espresso nel Fascicolo.",
+      consentH5: "Destinatari e conservazione",
+      consentB5: "I dati sono accessibili al personale sanitario della tua ULSS coinvolto nella tua cura e, se lo autorizzi, al caregiver che hai collegato. Sono conservati per il tempo necessario alle finalità di cura e secondo gli obblighi di legge, poi cancellati o resi anonimi.",
+      consentH6: "I tuoi diritti",
+      consentB6: "Puoi accedere ai tuoi dati, chiederne la rettifica o la cancellazione e revocare in ogni momento i consensi facoltativi dalla sezione Profilo. Per esercitare i tuoi diritti puoi contattare un operatore della tua ULSS.",
+      consentCustomTitle: "Personalizza la tua scelta",
+      consentCustomIntro: "Scegli quali trattamenti autorizzare. I trattamenti necessari al funzionamento del servizio restano sempre attivi e non possono essere disattivati.",
+      consentOptNeededTitle: "Funzionamento del servizio",
+      consentOptNeededDesc: "Trattamenti tecnici indispensabili per erogare Between in sicurezza. Sempre attivi.",
+      consentOptNotifTitle: "Notifiche e promemoria di cura",
+      consentOptNotifDesc: "Avvisi su farmaci, appuntamenti e messaggi del tuo team di cura.",
+      consentOptShareTitle: "Condivisione con il team di cura",
+      consentOptShareDesc: "Permetti ai professionisti della tua ULSS di consultare le informazioni che condividi.",
+      consentOptStatsTitle: "Miglioramento del servizio",
+      consentOptStatsDesc: "Statistiche aggregate e anonime per rendere l'app più utile e semplice.",
+      consentOptResearchTitle: "Ricerca scientifica",
+      consentOptResearchDesc: "Utilizzo dei tuoi dati in forma anonima per finalità di ricerca.",
+      consentConfirm: "Acconsento alla mia scelta",
       planMedsTitle: "Farmaci del giorno",
       planApptTitle: "Calendario Appuntamenti",
       planProposalsTitle: "Proposte dal caregiver",
@@ -3862,9 +3938,34 @@
       consentP1: "Between, as the platform operator, processes your data to provide care coordination services, together with your local health authority and the Veneto Region's Electronic Health Record.",
       consentP2: "Some processing is technically necessary to run the service, while other processing is carried out only with your consent, for example to improve your experience or to produce aggregated, anonymous statistics. Under Customise choices you can manage each purpose individually.",
       consentP3: "By choosing Continue without accepting you can proceed using only the necessary processing. You can change your preferences at any time from the Profile section.",
-      consentAccept: "Accept",
-      consentContinue: "Continue without accepting",
+      consentAccept: "Accept and continue",
       consentCustom: "Customise choices",
+      consentIntro: "Before you start using Between we ask you to read how we handle your personal and health data. We care about your privacy and want you to choose with full information.",
+      consentH1: "Data controller",
+      consentB1: "Between is provided as part of the care coordination services of your local health authority, ULSS 6 Euganea, acting as data controller together with the Veneto Region for the part concerning the Electronic Health Record.",
+      consentH2: "Purposes and legal bases",
+      consentB2: "We process your data to let you follow your care plan after discharge, manage medication and appointments and communicate with your care team. The legal basis is the provision of healthcare and assistance services, together with your consent for the optional purposes described below.",
+      consentH3: "Categories of data",
+      consentB3: "We process identification and contact data, data about your clinical pathway, therapy and appointments, and the messages exchanged with professionals. You are never asked for data that is not needed for the service.",
+      consentH4: "Electronic Health Record",
+      consentB4: "Some information comes from your Electronic Health Record within the Veneto Region's Sanità Km Zero ecosystem. Professionals can consult your documents only within the limits of the consents you have given in the Record.",
+      consentH5: "Recipients and retention",
+      consentB5: "Your data is accessible to the healthcare staff of your health authority involved in your care and, if you authorise it, to the caregiver you have linked. It is kept for as long as needed for care purposes and as required by law, then deleted or anonymised.",
+      consentH6: "Your rights",
+      consentB6: "You can access your data, ask for it to be corrected or deleted and withdraw the optional consents at any time from the Profile section. To exercise your rights you can contact an operator at your health authority.",
+      consentCustomTitle: "Customise your choice",
+      consentCustomIntro: "Choose which processing to authorise. The processing needed to run the service always stays on and cannot be turned off.",
+      consentOptNeededTitle: "Service operation",
+      consentOptNeededDesc: "Technical processing essential to run Between securely. Always on.",
+      consentOptNotifTitle: "Care notifications and reminders",
+      consentOptNotifDesc: "Alerts about medication, appointments and messages from your care team.",
+      consentOptShareTitle: "Sharing with the care team",
+      consentOptShareDesc: "Let the professionals at your health authority consult the information you share.",
+      consentOptStatsTitle: "Service improvement",
+      consentOptStatsDesc: "Aggregated, anonymous statistics to make the app more useful and simple.",
+      consentOptResearchTitle: "Scientific research",
+      consentOptResearchDesc: "Use of your data in anonymous form for research purposes.",
+      consentConfirm: "I consent to my choice",
       planMedsTitle: "Daily medication",
       planApptTitle: "Appointments Calendar",
       planProposalsTitle: "Caregiver proposals",
@@ -5035,13 +5136,36 @@
     var seen = false;
     try { seen = sessionStorage.getItem("betweenConsent") === "1"; } catch(e){}
     if(seen){ gate.classList.add("is-hidden"); return; }
+    var mainView = document.getElementById("consentMain");
+    var customView = document.getElementById("consentCustomView");
     var dismiss = function(){
       gate.classList.add("is-hidden");
       try { sessionStorage.setItem("betweenConsent", "1"); } catch(e){}
     };
-    ["consentAccept","consentContinue","consentCustom"].forEach(function(id){
-      var b = document.getElementById(id);
-      if(b) b.addEventListener("click", dismiss);
+    var showCustom = function(){
+      if(mainView) mainView.hidden = true;
+      if(customView) customView.hidden = false;
+      var sc = customView && customView.querySelector(".consent-scroll");
+      if(sc) sc.scrollTop = 0;
+    };
+    var showMain = function(){
+      if(customView) customView.hidden = true;
+      if(mainView) mainView.hidden = false;
+    };
+    var acc = document.getElementById("consentAccept");
+    if(acc) acc.addEventListener("click", dismiss);
+    var conf = document.getElementById("consentConfirm");
+    if(conf) conf.addEventListener("click", dismiss);
+    var custBtn = document.getElementById("consentCustomBtn");
+    if(custBtn) custBtn.addEventListener("click", showCustom);
+    var custBack = document.getElementById("consentCustomBack");
+    if(custBack) custBack.addEventListener("click", showMain);
+    // toggle delle opzioni facoltative (quello necessario è disabled e resta attivo)
+    gate.querySelectorAll('#consentCustomView .profile-switch:not([disabled])').forEach(function(sw){
+      sw.addEventListener("click", function(){
+        var on = sw.classList.toggle("on");
+        sw.setAttribute("aria-pressed", on ? "true" : "false");
+      });
     });
   })();
 })();
