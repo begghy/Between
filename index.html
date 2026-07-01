@@ -5229,6 +5229,66 @@
     });
   })();
 })();
+
+  /* ============================================================
+     Export html.to.design — frame extra per gli stati interni di A7.
+     Solo in ?section=a: clona la Home in ogni suo stato interno (pieno)
+     e li affianca come frame separati con didascalia. Nessun effetto
+     nell'uso normale dell'app.
+     ============================================================ */
+  (function () {
+    var params = new URLSearchParams(window.location.search);
+    if ((params.get("section") || "").toLowerCase() !== "a") return;
+
+    function build() {
+      var a7 = document.querySelector('[data-screen="a7"]');
+      if (!a7 || !a7.parentNode) return;
+      var row = a7.parentNode;
+
+      function snap(caption) {
+        var clone = a7.cloneNode(true);
+        var cap = clone.querySelector(".frame-caption");
+        if (cap) cap.textContent = caption;
+        row.appendChild(clone);
+      }
+
+      // Piano
+      if (window.switchTab) window.switchTab("piano");
+      snap("A7 — Piano");
+
+      // Messaggi (inbox)
+      if (window.switchTab) window.switchTab("messaggi");
+      if (window.closeConversation) window.closeConversation();
+      snap("A7 — Messaggi");
+
+      // Chat: My-Between, Marco (caregiver), Dr. Bianchi (medico)
+      if (window.openConversation) {
+        window.openConversation("mybetween"); snap("A7 — Chat · My-Between");
+        window.openConversation("caregiver"); snap("A7 — Chat · Marco");
+        window.openConversation("doctor");    snap("A7 — Chat · Dr. Bianchi");
+      }
+      if (window.closeConversation) window.closeConversation();
+
+      // Profilo (principale)
+      if (window.switchTab) window.switchTab("profilo");
+      snap("A7 — Profilo");
+
+      // Documenti del Profilo
+      if (window.openProfileDoc) {
+        window.openProfileDoc("faq");     snap("A7 — Profilo · FAQ");
+        window.openProfileDoc("help");    snap("A7 — Profilo · Aiuto");
+        window.openProfileDoc("privacy"); snap("A7 — Profilo · Privacy");
+        window.openProfileDoc("terms");   snap("A7 — Profilo · Termini");
+      }
+      if (window.closeProfileDoc) window.closeProfileDoc();
+
+      // Ripristina la Home originale
+      if (window.switchTab) window.switchTab("home");
+    }
+
+    // Dopo l'init sincrono (dati gia' renderizzati sopra).
+    setTimeout(build, 0);
+  })();
   </script>
 </body>
 </html>
